@@ -1,0 +1,67 @@
+﻿@model ConAuntenticacion.Models.DatosEmisor
+
+@{
+    ViewBag.Title = "Detalle · Datos del emisor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Detalle · Datos del emisor</h2>
+
+<div>
+    <h4>DatosEmisor</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.NombreComercial)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.NombreComercial)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Identificacion)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Identificacion)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Direccion)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Direccion)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Telefono)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Telefono)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Correo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Correo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LeyendaComprobante)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LeyendaComprobante)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.DatosEmisorId }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>

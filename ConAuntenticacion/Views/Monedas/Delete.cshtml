@@ -1,0 +1,35 @@
+﻿@model ConAuntenticacion.Models.Moneda
+
+@{
+    ViewBag.Title = "Eliminar · Monedas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Eliminar · Monedas</h2>
+
+<h3>¿Está seguro de eliminar este registro?</h3>
+<div>
+    <h4>Moneda</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Descripcion)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Descripcion)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Eliminar" class="btn btn-danger" /> |
+            @Html.ActionLink("Volver a la lista", "Index")
+        </div>
+    }
+</div>

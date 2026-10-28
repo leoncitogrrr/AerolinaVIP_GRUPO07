@@ -1,0 +1,46 @@
+﻿@model IEnumerable<ConAuntenticacion.Models.ModeloAeronave>
+
+@{
+    ViewBag.Title = "Modelos de aeronave";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Modelos de aeronave</h2>
+
+<p>
+    @Html.ActionLink("Crear nuevo", "Create")
+</p>
+<table class="table table-hover align-middle">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Fabricante)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Nombre)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CapacidadAsientos)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Fabricante)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Nombre)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CapacidadAsientos)
+        </td>
+        <td>
+            @Html.ActionLink("Editar", "Edit", new { id=item.ModeloAeronaveId }) |
+            @Html.ActionLink("Detalles", "Details", new { id=item.ModeloAeronaveId }) |
+            @Html.ActionLink("Eliminar", "Delete", new { id=item.ModeloAeronaveId })
+        </td>
+    </tr>
+}
+
+</table>

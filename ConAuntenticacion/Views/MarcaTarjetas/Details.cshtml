@@ -1,0 +1,67 @@
+﻿@model ConAuntenticacion.Models.MarcaTarjeta
+
+@{
+    ViewBag.Title = "Detalle · Marcas de tarjeta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Detalle · Marcas de tarjeta</h2>
+
+<div>
+    <h4>MarcaTarjeta</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Nombre)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Nombre)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LongitudNumero)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LongitudNumero)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LongitudCodigoSeguridad)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LongitudCodigoSeguridad)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PrefijosReferencia)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PrefijosReferencia)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RutaLogo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RutaLogo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Activa)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Activa)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.Codigo }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>

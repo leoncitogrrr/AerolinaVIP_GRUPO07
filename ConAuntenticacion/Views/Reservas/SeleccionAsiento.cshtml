@@ -1,0 +1,101 @@
+﻿@model ConAuntenticacion.Models.SeleccionAsientoViewModel
+@{
+    ViewBag.Title = "Selección de asiento";
+}
+
+<h1 class="h3 mb-1">Selección de vuelo y asiento</h1>
+<p class="text-muted">Pantalla 8</p>
+@Html.Partial("_PasosCompra", 1)
+@Html.Partial("_Mensajes")
+@Html.Partial("_BarraVuelo", Model.Vuelo)
+
+<div class="alert alert-info small" role="status">
+    Seleccione <strong>@Model.CantidadPasajeros</strong> asiento(s) verde(s), uno por pasajero.
+    La selección es <strong>temporal</strong>: el asiento se reserva recién al confirmar la reserva (paso 3)
+    y el servidor vuelve a comprobar la disponibilidad.
+</div>
+
+@using (Html.BeginForm("SeleccionAsiento", "Reservas", FormMethod.Post, new { id = "formAsientos" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.VueloId)
+    @Html.HiddenFor(m => m.CantidadPasajeros)
+    @Html.HiddenFor(m => m.AsientosSeleccionados)
+    @Html.ValidationSummary(false, "", new { @class = "text-danger", role = "alert" })
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            @if (!Model.Asientos.Any())
+            {
+                <div class="alert alert-warning">El vuelo no tiene aeronave asignada; no se pueden seleccionar asientos.</div>
+            }
+            else
+            {
+                @Html.Partial("_MapaAsientos", Model.Asientos, new ViewDataDictionary { { "Seleccionable", true } })
+            }
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5">Resumen</h2>
+                    <p class="small mb-1">Pasajeros: <strong>@Model.CantidadPasajeros</strong></p>
+                    <p class="small mb-1">Seleccionados: <strong id="contador">0</strong> de @Model.CantidadPasajeros</p>
+                    <ul id="listaSeleccion" class="small ps-3"></ul>
+                    <p class="small text-muted mb-3">Tarifa por pasajero: @Model.Vuelo.Tarifa.ToString("N2") USD + IVA</p>
+
+                    <button type="submit" id="btnContinuar" class="btn btn-primary w-100" disabled>Continuar</button>
+                    @Html.ActionLink("Actualizar disponibilidad", "SeleccionAsiento", new { id = Model.VueloId, pasajeros = Model.CantidadPasajeros }, new { @class = "btn btn-outline-secondary w-100 mt-2" })
+                    @Html.ActionLink("Regresar", "Disponibilidad", "Vuelos", new { id = Model.VueloId, pasajeros = Model.CantidadPasajeros }, new { @class = "btn btn-link w-100 mt-1" })
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(function () {
+            var maximo = @Model.CantidadPasajeros;
+            var seleccion = [];
+
+            function refrescar() {
+                $("#AsientosSeleccionados").val(seleccion.map(function (a) { return a.numero; }).join(","));
+                $("#contador").text(seleccion.length);
+                var lista = $("#listaSeleccion").empty();
+                seleccion.forEach(function (a, i) {
+                    lista.append($("<li>").text("Pasajero " + (i + 1) + ": asiento " + a.codigo + " – " + a.ubicacion));
+                });
+                $("#btnContinuar").prop("disabled", seleccion.length !== maximo);
+            }
+
+            // Solo los asientos verdes (habilitados) se pueden seleccionar
+            $(".asiento:not(:disabled)").on("click", function () {
+                var btn = $(this);
+                var numero = btn.data("numero");
+                var indice = seleccion.findIndex(function (a) { return a.numero === numero; });
+
+                if (indice >= 0) {
+                    seleccion.splice(indice, 1);
+                    btn.removeClass("seleccionado").attr("aria-pressed", "false");
+                    btn.find(".estado-texto").text("Disponible");
+                } else {
+                    if (seleccion.length >= maximo) {
+                        alert("Ya seleccionó " + maximo + " asiento(s). Quite uno para elegir otro.");
+                        return;
+                    }
+                    seleccion.push({ numero: numero, codigo: btn.data("codigo"), ubicacion: btn.data("ubicacion") });
+                    btn.addClass("seleccionado").attr("aria-pressed", "true");
+                    btn.find(".estado-texto").text("Su selección");
+                }
+                refrescar();
+            });
+
+            $("#formAsientos").on("submit", function () {
+                $("#btnContinuar").prop("disabled", true).text("Verificando disponibilidad…");
+            });
+
+            refrescar();
+        });
+    </script>
+}

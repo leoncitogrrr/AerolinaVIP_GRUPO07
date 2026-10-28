@@ -1,0 +1,93 @@
+﻿@model ConAuntenticacion.Models.ReservaResumenViewModel
+@using ConAuntenticacion.Models
+@{
+    ViewBag.Title = "Gestión de la reserva";
+}
+
+<h1 class="h3 mb-1">Gestión de reservas y cancelaciones</h1>
+<p class="text-muted">Pantalla 14</p>
+@Html.Partial("_Mensajes")
+@Html.ValidationSummary(false, "", new { @class = "alert alert-danger", role = "alert" })
+
+@Html.Partial("_ResumenReserva", Model)
+
+<div class="card shadow-sm mt-4">
+    <div class="card-header fw-semibold">Cancelación</div>
+    <div class="card-body">
+        <p class="small mb-2">
+            <strong>Política propuesta (DP-08, pendiente de aprobación):</strong>
+            100 % de reembolso con @PoliticasAerolinea.HorasReembolsoTotal h o más antes de la salida ·
+            50 % entre @PoliticasAerolinea.HorasReembolsoParcial y @PoliticasAerolinea.HorasReembolsoTotal h ·
+            con menos de @PoliticasAerolinea.HorasReembolsoParcial h no se permite cancelar ·
+            una reserva pendiente (sin pago) se cancela sin costo. Al cancelar, los asientos vuelven a estar disponibles.
+        </p>
+
+        @if (!Model.PuedeCancelar)
+        {
+            <div class="alert alert-secondary mb-0" role="status">@Model.MotivoNoCancelar</div>
+        }
+        else
+        {
+            if (Model.EstadoCompra == "PAGADA")
+            {
+                <div class="alert alert-info" role="status">
+                    Si cancela ahora recibirá un reembolso simulado de
+                    <strong>@Model.ImporteReembolso.ToString("N2") USD (@((Model.PorcentajeReembolso * 100).ToString("0")) %)</strong>
+                    y se emitirá una nota de crédito académica.
+                </div>
+            }
+            using (Html.BeginForm("Cancelar", "Reservas", FormMethod.Post, new { id = "formCancelar" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ReservaId" value="@Model.ReservaId" />
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="ConfirmaCancelacion" name="ConfirmaCancelacion" value="true" />
+                    <input type="hidden" name="ConfirmaCancelacion" value="false" />
+                    <label class="form-check-label" for="ConfirmaCancelacion">Confirmo que deseo cancelar la reserva @Model.CodigoReserva</label>
+                </div>
+                <button type="button" class="btn btn-danger" id="btnCancelar">Cancelar reserva</button>
+
+                <!-- Modal de confirmación -->
+                <div class="modal fade" id="modalCancelar" tabindex="-1" aria-labelledby="tituloCancelar" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2 class="modal-title h5" id="tituloCancelar">¿Cancelar la reserva @Model.CodigoReserva?</h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                Esta operación no se puede deshacer. Los asientos quedarán disponibles para otros clientes.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, volver</button>
+                                <button type="submit" class="btn btn-danger">Sí, cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<div class="mt-3 d-flex flex-wrap gap-2">
+    @if (Model.PuedePagar)
+    {
+        @Html.ActionLink("Pagar ahora", "Pagar", "Compras", new { id = Model.ReservaId }, new { @class = "btn btn-primary" })
+    }
+    @Html.ActionLink("Volver a mis reservas", "MisReservas", null, new { @class = "btn btn-link" })
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $("#btnCancelar").on("click", function () {
+                if (!$("#ConfirmaCancelacion").is(":checked")) {
+                    alert("Marque la casilla para confirmar la cancelación.");
+                    return;
+                }
+                new bootstrap.Modal(document.getElementById("modalCancelar")).show();
+            });
+        });
+    </script>
+}

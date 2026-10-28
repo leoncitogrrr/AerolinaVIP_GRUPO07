@@ -1,0 +1,107 @@
+﻿@model ConAuntenticacion.Models.ConfirmarReservaViewModel
+@using ConAuntenticacion.Models
+@{
+    ViewBag.Title = "Reserva de pasajes";
+}
+
+<h1 class="h3 mb-1">Reserva de pasajes</h1>
+<p class="text-muted">Pantalla 10 · Revise los datos antes de confirmar.</p>
+@Html.Partial("_PasosCompra", 3)
+@Html.Partial("_Mensajes")
+@Html.Partial("_BarraVuelo", Model.Vuelo)
+
+@using (Html.BeginForm("Confirmar", "Reservas", FormMethod.Post, new { id = "formConfirmar" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger", role = "alert" })
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Pasajeros y asientos</div>
+                <div class="table-responsive">
+                    <table class="table mb-0 align-middle">
+                        <thead>
+                            <tr><th>Asiento</th><th>Pasajero</th><th>Documento</th><th class="text-end">Tarifa</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Pasajeros)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-success">@p.CodigoAsiento</span></td>
+                                    <td>@p.Nombres @p.Apellidos</td>
+                                    <td>@p.TipoDocumentoCodigo @p.NumeroDocumento</td>
+                                    <td class="text-end">@Model.Vuelo.Tarifa.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="alert alert-warning small mt-3" role="note">
+                <strong>Condiciones (políticas propuestas, pendientes de aprobación):</strong>
+                <ul class="mb-0">
+                    <li>La reserva queda <strong>PENDIENTE</strong> y los asientos se muestran en <strong>morado</strong> durante
+                        @PoliticasAerolinea.HorasRetencionReserva horas. Si no se paga, expira y los asientos se liberan (DP-07).</li>
+                    <li>Al pagar, la compra queda <strong>PAGADA</strong> y los asientos pasan a <strong>rojo</strong> (ocupados).</li>
+                    <li>Cancelación: 100 % de reembolso con @PoliticasAerolinea.HorasReembolsoTotal h o más de anticipación,
+                        50 % entre @PoliticasAerolinea.HorasReembolsoParcial y @PoliticasAerolinea.HorasReembolsoTotal h; con menos de
+                        @PoliticasAerolinea.HorasReembolsoParcial h no se permite cancelar (DP-08).</li>
+                    <li>El pago es <strong>simulado</strong> con fines académicos: no se realizan cobros reales.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5">Importe</h2>
+                    <dl class="row small mb-2">
+                        <dt class="col-7 fw-normal">Subtotal (@Model.Pasajeros.Count × @Model.Vuelo.Tarifa.ToString("N2"))</dt>
+                        <dd class="col-5 text-end">@Model.Subtotal.ToString("N2")</dd>
+                        <dt class="col-7 fw-normal">IVA (@((PoliticasAerolinea.PorcentajeIva * 100).ToString("0")) %)</dt>
+                        <dd class="col-5 text-end">@Model.Iva.ToString("N2")</dd>
+                        <dt class="col-7">Total USD</dt>
+                        <dd class="col-5 text-end fw-bold fs-5">@Model.Total.ToString("N2")</dd>
+                    </dl>
+
+                    @if (User.IsInRole(RolesSistema.Counter))
+                    {
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.UsuarioCliente, "Usuario del cliente *", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.UsuarioCliente, new { @class = "form-control", placeholder = "ej. cliente1" })
+                            @Html.ValidationMessageFor(m => m.UsuarioCliente, "", new { @class = "text-danger" })
+                            <div class="form-text">El Counter registra la reserva a nombre de un cliente existente (DP-13).</div>
+                        </div>
+                    }
+
+                    <div class="form-check mb-3">
+                        @Html.CheckBoxFor(m => m.AceptaCondiciones, new { @class = "form-check-input" })
+                        @Html.LabelFor(m => m.AceptaCondiciones, new { @class = "form-check-label small" })
+                        @Html.ValidationMessageFor(m => m.AceptaCondiciones, "", new { @class = "text-danger d-block" })
+                    </div>
+
+                    <button type="submit" id="btnConfirmar" class="btn btn-primary w-100">Confirmar reserva</button>
+                    @Html.ActionLink("Regresar a pasajeros", "Pasajeros", null, new { @class = "btn btn-link w-100 mt-1" })
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(function () {
+            $("#formConfirmar").on("submit", function () {
+                if (!$("#AceptaCondiciones").is(":checked")) {
+                    alert("Debe aceptar las condiciones para registrar la reserva.");
+                    return false;
+                }
+                // Evita doble envío (RNP-10)
+                $("#btnConfirmar").prop("disabled", true).text("Registrando reserva…");
+            });
+        });
+    </script>
+}

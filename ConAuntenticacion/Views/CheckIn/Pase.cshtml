@@ -1,0 +1,30 @@
+﻿@model ConAuntenticacion.Models.CheckInElegibleViewModel
+@{
+    ViewBag.Title = "Pase de abordar";
+}
+
+@Html.Partial("_Mensajes")
+
+<div class="card shadow mx-auto" style="max-width: 640px;">
+    <div class="card-header text-white d-flex justify-content-between align-items-center" style="background:#0b1f3a;">
+        <span class="fw-bold">Aerolínea VIP · Pase de abordar</span>
+        <span class="badge" style="background:#d4af37; color:#0b1f3a;">CHECK-IN ✓</span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-12"><span class="text-muted small d-block">Pasajero</span><span class="fs-5 fw-bold">@Model.Pasajero</span><br /><small>@Model.Documento</small></div>
+            <div class="col-6"><span class="text-muted small d-block">Vuelo</span><strong>@Model.CodigoVuelo</strong></div>
+            <div class="col-6"><span class="text-muted small d-block">Reserva</span><strong>@Model.CodigoReserva</strong></div>
+            <div class="col-6"><span class="text-muted small d-block">Ruta</span><strong>@Model.Ruta</strong></div>
+            <div class="col-6"><span class="text-muted small d-block">Salida</span><strong>@Model.Salida.ToString("dd/MM/yyyy HH:mm")</strong></div>
+            <div class="col-6"><span class="text-muted small d-block">Asiento</span><span class="fs-3 fw-bold">@Model.Asiento</span></div>
+            <div class="col-6"><span class="text-muted small d-block">Presentarse</span><strong>@Model.Salida.AddMinutes(-45).ToString("HH:mm")</strong></div>
+        </div>
+        <p class="small text-muted mt-3 mb-0">Documento académico: no válido para un vuelo real.</p>
+    </div>
+</div>
+
+<div class="text-center mt-3 d-print-none">
+    <button type="button" class="btn btn-outline-dark" onclick="window.print()">Imprimir</button>
+    @Html.ActionLink("Volver al check-in", "Index", new { CodigoReserva = Model.CodigoReserva }, new { @class = "btn btn-link" })
+</div>

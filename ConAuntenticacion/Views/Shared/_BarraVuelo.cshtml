@@ -1,0 +1,12 @@
+﻿@model ConAuntenticacion.Models.ResultadoVueloViewModel
+@* Barra de datos del vuelo (pantallas 6 a 12): fecha, origen, destino, horario, aeronave y capacidad *@
+<div class="card shadow-sm mb-3">
+    <div class="card-body row g-2 small">
+        <div class="col-6 col-md-2"><span class="text-muted d-block">Vuelo</span><strong>@Model.CodigoVuelo</strong></div>
+        <div class="col-6 col-md-3"><span class="text-muted d-block">Ruta</span><strong>@Model.CiudadOrigen (@Model.Origen) → @Model.CiudadDestino (@Model.Destino)</strong></div>
+        <div class="col-6 col-md-2"><span class="text-muted d-block">Fecha</span><strong>@Model.Fecha.ToString("dd/MM/yyyy")</strong></div>
+        <div class="col-6 col-md-2"><span class="text-muted d-block">Horario</span><strong>@Model.HoraSalida.ToString(@"hh\:mm") – @Model.HoraLlegada.ToString(@"hh\:mm")</strong></div>
+        <div class="col-6 col-md-2"><span class="text-muted d-block">Aeronave</span><strong>@(Model.Matricula ?? "Sin asignar")</strong></div>
+        <div class="col-6 col-md-1"><span class="text-muted d-block">Libres</span><strong>@Model.Disponibles / @Model.Capacidad</strong></div>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+﻿@model ConAuntenticacion.Models.TramoItinerario
+
+@{
+    ViewBag.Title = "Eliminar · Tramos de itinerario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Eliminar · Tramos de itinerario</h2>
+
+<h3>¿Está seguro de eliminar este registro?</h3>
+<div>
+    <h4>TramoItinerario</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Orden)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Orden)
+        </dd>
+
+        <dt>
+            Itinerario
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Itinerario.Referencia)
+        </dd>
+
+        <dt>
+            Estado del vuelo
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Vuelo.EstadoVueloCodigo)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Eliminar" class="btn btn-danger" /> |
+            @Html.ActionLink("Volver a la lista", "Index")
+        </div>
+    }
+</div>

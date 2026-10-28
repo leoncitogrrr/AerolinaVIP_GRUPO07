@@ -1,0 +1,48 @@
+﻿@model ConAuntenticacion.Models.ResultadoVueloViewModel
+@{
+    int pasajeros = ViewData["Pasajeros"] != null ? (int)ViewData["Pasajeros"] : 1;
+    bool alcanza = Model.Comercializable && Model.Disponibles >= pasajeros;
+}
+
+<div class="card h-100 shadow-sm">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
+            <span class="fw-bold">@Model.CodigoVuelo</span>
+            <span class="badge @(Model.Estado == "CONFIRMADO" ? "bg-success" : "bg-secondary")">@Model.Estado</span>
+        </div>
+        <div class="fs-5 my-2">
+            @Model.HoraSalida.ToString(@"hh\:mm") <small class="text-muted">@Model.Origen</small>
+            →
+            @Model.HoraLlegada.ToString(@"hh\:mm") <small class="text-muted">@Model.Destino</small>
+        </div>
+        <p class="small mb-1">@Model.CiudadOrigen → @Model.CiudadDestino · @Model.Fecha.ToString("dddd dd/MM/yyyy")</p>
+        <p class="small mb-1">Tarifa por pasajero: <strong>@Model.Tarifa.ToString("N2") USD</strong> <span class="text-muted">+ IVA</span></p>
+
+        @if (!Model.TieneAeronave)
+        {
+            <p class="small text-warning mb-0">Aeronave pendiente de asignación: no disponible para la venta.</p>
+        }
+        else
+        {
+            <p class="small mb-0">
+                Asientos disponibles: <strong>@Model.Disponibles</strong> de @Model.Capacidad
+                @if (Model.Disponibles == 1)
+                {
+                    <span class="badge bg-warning text-dark ms-1">¡Último asiento!</span>
+                }
+            </p>
+        }
+    </div>
+    <div class="card-footer bg-white">
+        @if (alcanza)
+        {
+            @Html.ActionLink("Ver asientos", "Disponibilidad", "Vuelos", new { id = Model.VueloId, pasajeros = pasajeros }, new { @class = "btn btn-primary btn-sm w-100" })
+        }
+        else
+        {
+            <button type="button" class="btn btn-secondary btn-sm w-100" disabled>
+                @(Model.TieneAeronave ? "Sin asientos suficientes" : "No disponible")
+            </button>
+        }
+    </div>
+</div>

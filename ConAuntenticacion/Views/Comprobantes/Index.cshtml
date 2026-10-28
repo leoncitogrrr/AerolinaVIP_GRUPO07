@@ -1,0 +1,63 @@
+﻿@model List<ConAuntenticacion.Models.ComprobanteItemViewModel>
+@using ConAuntenticacion.Models
+@{
+    ViewBag.Title = "Comprobantes";
+    bool esPersonal = User.IsInRole(RolesSistema.Counter) || User.IsInRole(RolesSistema.Administrador) || User.IsInRole(RolesSistema.SuperUsuario);
+}
+
+<h1 class="h3 mb-1">Visualización de comprobantes</h1>
+<p class="text-muted">Pantalla 16 · Comprobantes académicos (no tributarios) de operaciones simuladas.</p>
+@Html.Partial("_Mensajes")
+
+@using (Html.BeginForm("Index", "Comprobantes", FormMethod.Get, new { @class = "row g-2 align-items-end mb-3" }))
+{
+    <div class="col-12 col-md-4">
+        <label for="buscar" class="form-label">Buscar por código de reserva o número de comprobante</label>
+        <input type="text" id="buscar" name="buscar" value="@ViewBag.Buscar" class="form-control" maxlength="30" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-dark">Buscar</button>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="status">
+        @(esPersonal ? "No se encontraron comprobantes." : "Aún no tiene comprobantes. Se emiten al completar el pago de una reserva.")
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Número</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Reserva</th>
+                    <th>Estado</th>
+                    <th class="text-end">Valor USD</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@c.Numero</td>
+                        <td>@c.Tipo</td>
+                        <td>@c.FechaEmision.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@c.CodigoReserva</td>
+                        <td>@Html.Partial("_EstadoBadge", c.Estado)</td>
+                        <td class="text-end">@c.Total.ToString("N2")</td>
+                        <td class="text-nowrap">
+                            @Html.ActionLink("Ver", "Ver", new { id = c.ComprobanteId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                            @Html.ActionLink("PDF", "Pdf", new { id = c.ComprobanteId }, new { @class = "btn btn-sm btn-primary" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

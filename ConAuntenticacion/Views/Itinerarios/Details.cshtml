@@ -1,0 +1,43 @@
+﻿@model ConAuntenticacion.Models.Itinerario
+
+@{
+    ViewBag.Title = "Detalle · Itinerarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Detalle · Itinerarios</h2>
+
+<div>
+    <h4>Itinerario</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Referencia)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Referencia)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Nombre)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Nombre)
+        </dd>
+
+        <dt>
+            Estado
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EstadoItinerario.Descripcion)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.ItinerarioId }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>

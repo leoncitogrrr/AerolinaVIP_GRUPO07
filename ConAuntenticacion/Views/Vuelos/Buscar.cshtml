@@ -1,0 +1,77 @@
+﻿@model ConAuntenticacion.Models.BusquedaVuelosViewModel
+@{
+    ViewBag.Title = "Búsqueda de vuelos";
+    var aeropuertos = (List<SelectListItem>)ViewBag.Aeropuertos;
+}
+
+<h1 class="h3 mb-1">Búsqueda de vuelos</h1>
+<p class="text-muted">Pantalla 5 · Los campos con * son obligatorios.</p>
+@Html.Partial("_Mensajes")
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        @using (Html.BeginForm("Resultados", "Vuelos", FormMethod.Get, new { id = "formBusqueda" }))
+        {
+            @Html.ValidationSummary(true, "", new { @class = "text-danger", role = "alert" })
+
+            <div class="row g-3">
+                <div class="col-12 col-md-3">
+                    @Html.LabelFor(m => m.Origen, "Origen *", new { @class = "form-label" })
+                    @Html.DropDownListFor(m => m.Origen, new SelectList(aeropuertos, "Value", "Text", Model.Origen), "-- Seleccione --", new { @class = "form-select" })
+                    @Html.ValidationMessageFor(m => m.Origen, "", new { @class = "text-danger", role = "alert" })
+                </div>
+                <div class="col-12 col-md-3">
+                    @Html.LabelFor(m => m.Destino, "Destino *", new { @class = "form-label" })
+                    @Html.DropDownListFor(m => m.Destino, new SelectList(aeropuertos, "Value", "Text", Model.Destino), "-- Seleccione --", new { @class = "form-select" })
+                    @Html.ValidationMessageFor(m => m.Destino, "", new { @class = "text-danger", role = "alert" })
+                </div>
+                <div class="col-12 col-md-3">
+                    @Html.LabelFor(m => m.Fecha, "Fecha de viaje *", new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Fecha, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", min = DateTime.Today.ToString("yyyy-MM-dd") })
+                    @Html.ValidationMessageFor(m => m.Fecha, "", new { @class = "text-danger", role = "alert" })
+                </div>
+                <div class="col-12 col-md-3">
+                    @Html.LabelFor(m => m.Pasajeros, "Pasajeros *", new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Pasajeros, new { @class = "form-control", type = "number", min = "1", max = "7" })
+                    @Html.ValidationMessageFor(m => m.Pasajeros, "", new { @class = "text-danger", role = "alert" })
+                    <div class="form-text">Máximo 7 (capacidad del Embraer Phenom 300E).</div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" id="btnBuscar" class="btn btn-primary px-4">Buscar vuelos</button>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="alert alert-light border mt-4 small">
+    <strong>Itinerarios:</strong> Quito–Guayaquil (martes, jueves y sábado) · Quito–Manta (lunes, miércoles y viernes) ·
+    Quito–Galápagos con escala en Guayaquil (domingo).
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(function () {
+            // Filtro dependiente: el destino no puede ser igual al origen
+            function filtrarDestino() {
+                var origen = $("#Origen").val();
+                $("#Destino option").prop("disabled", false);
+                if (origen) {
+                    $("#Destino option[value='" + origen + "']").prop("disabled", true);
+                    if ($("#Destino").val() === origen) { $("#Destino").val(""); }
+                }
+            }
+            $("#Origen").on("change", filtrarDestino);
+            filtrarDestino();
+
+            // Estado de carga
+            $("#formBusqueda").on("submit", function () {
+                if ($(this).valid()) {
+                    $("#btnBuscar").prop("disabled", true).text("Buscando vuelos…");
+                }
+            });
+        });
+    </script>
+}

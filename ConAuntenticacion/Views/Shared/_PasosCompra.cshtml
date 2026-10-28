@@ -1,0 +1,17 @@
+﻿@model int
+@* Indicador de pasos 1-4 del flujo de compra (pantallas 8 a 11) *@
+@{
+    string[] pasos = { "Asientos", "Pasajeros", "Reserva", "Pago" };
+}
+<nav aria-label="Pasos de la compra" class="mb-4">
+    <ol class="list-unstyled d-flex flex-wrap gap-2 mb-0">
+        @for (int i = 0; i < pasos.Length; i++)
+        {
+            int numero = i + 1;
+            string css = numero < Model ? "bg-success text-white" : (numero == Model ? "bg-primary text-white" : "bg-light text-muted border");
+            <li class="px-3 py-2 rounded-pill small @css" @(numero == Model ? "aria-current=step" : "")>
+                <strong>@numero</strong> @pasos[i] @(numero < Model ? "✓" : "")
+            </li>
+        }
+    </ol>
+</nav>

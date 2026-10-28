@@ -1,0 +1,63 @@
+﻿@model ConAuntenticacion.Models.ReservaResumenViewModel
+@{
+    ViewBag.Title = "Confirmación";
+}
+
+<h1 class="h3 mb-1">Confirmación de compra o reserva</h1>
+<p class="text-muted">Pantalla 12 · Se muestra el estado REAL guardado en la base de datos.</p>
+@Html.Partial("_Mensajes")
+
+@if (Model.EstadoReserva == "CONFIRMADA" && Model.EstadoCompra == "PAGADA")
+{
+    <div class="alert alert-success" role="status">
+        <strong>¡Compra completada!</strong> La reserva @Model.CodigoReserva está CONFIRMADA y sus asientos quedaron OCUPADOS (rojo).
+    </div>
+}
+else if (Model.EstadoReserva == "PENDIENTE")
+{
+    <div class="alert alert-info" role="status">
+        <strong>Reserva registrada, pago pendiente.</strong> Los asientos están RESERVADOS (morado)
+        @if (Model.FechaExpiracion.HasValue)
+        {
+            <span>hasta el @Model.FechaExpiracion.Value.ToString("dd/MM/yyyy HH:mm").</span>
+        }
+        @if (Model.EstadoPago == "RECHAZADO")
+        {
+            <span class="d-block mt-1 text-danger">El último pago fue rechazado: @Model.MensajePago Puede intentarlo con otra tarjeta.</span>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-secondary" role="status">La reserva está en estado <strong>@Model.EstadoReserva</strong>.</div>
+}
+
+@Html.Partial("_ResumenReserva", Model)
+
+@if (Model.Comprobantes != null && Model.Comprobantes.Any())
+{
+    <div class="card shadow-sm mt-4">
+        <div class="card-header fw-semibold">Comprobantes académicos</div>
+        <ul class="list-group list-group-flush">
+            @foreach (var c in Model.Comprobantes)
+            {
+                <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <span><strong>@c.Numero</strong> · @c.Tipo · @Html.Partial("_EstadoBadge", c.Estado)</span>
+                    <span>
+                        @Html.ActionLink("Ver", "Ver", "Comprobantes", new { id = c.ComprobanteId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                        @Html.ActionLink("Descargar PDF", "Pdf", "Comprobantes", new { id = c.ComprobanteId }, new { @class = "btn btn-sm btn-primary" })
+                    </span>
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="d-flex flex-wrap gap-2 mt-4">
+    @if (Model.PuedePagar)
+    {
+        @Html.ActionLink("Pagar ahora", "Pagar", "Compras", new { id = Model.ReservaId }, new { @class = "btn btn-primary" })
+    }
+    @Html.ActionLink("Mis reservas", "MisReservas", "Reservas", null, new { @class = "btn btn-outline-dark" })
+    @Html.ActionLink("Gestionar / cancelar", "Gestionar", "Reservas", new { id = Model.ReservaId }, new { @class = "btn btn-link" })
+</div>

@@ -1,0 +1,59 @@
+﻿@model ConAuntenticacion.Models.Frecuencia
+
+@{
+    ViewBag.Title = "Detalle · Frecuencias";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Detalle · Frecuencias</h2>
+
+<div>
+    <h4>Frecuencia</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.DiaSemana)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DiaSemana)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.HoraSalida)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.HoraSalida)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.HoraLlegada)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.HoraLlegada)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Activa)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Activa)
+        </dd>
+
+        <dt>
+            Ruta
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Ruta.RutaId)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.FrecuenciaId }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>

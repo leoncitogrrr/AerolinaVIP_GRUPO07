@@ -1,0 +1,70 @@
+﻿@model List<ConAuntenticacion.Models.ReservaResumenViewModel>
+@{
+    ViewBag.Title = "Mis reservas";
+    string estado = ViewBag.Estado as string;
+    string[] estados = { "", "PENDIENTE", "CONFIRMADA", "CANCELADA", "EXPIRADA" };
+}
+
+<h1 class="h3 mb-1">Consulta de reservas</h1>
+<p class="text-muted">Pantalla 13</p>
+@Html.Partial("_Mensajes")
+
+<div class="d-flex flex-wrap gap-2 mb-3" role="group" aria-label="Filtrar por estado">
+    @foreach (string e in estados)
+    {
+        @Html.ActionLink(e == "" ? "Todas" : e, "MisReservas", new { estado = e }, new { @class = "btn btn-sm " + (e == (estado ?? "") ? "btn-dark" : "btn-outline-dark") })
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="status">
+        No tiene reservas @(string.IsNullOrEmpty(estado) ? "" : "en estado " + estado).
+        @Html.ActionLink("Buscar vuelos", "Buscar", "Vuelos", null, new { @class = "alert-link" })
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Código</th>
+                    <th>Primer vuelo</th>
+                    <th>Pasajes</th>
+                    <th>Reserva</th>
+                    <th>Compra</th>
+                    <th class="text-end">Total USD</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@r.CodigoReserva</td>
+                        <td>
+                            @if (r.Detalle.Any())
+                            {
+                                var d = r.Detalle.OrderBy(x => x.Salida).First();
+                                <span>@d.CodigoVuelo · @d.Ruta<br /><small class="text-muted">@d.Salida.ToString("dd/MM/yyyy HH:mm")</small></span>
+                            }
+                        </td>
+                        <td>@r.Detalle.Count</td>
+                        <td>@Html.Partial("_EstadoBadge", r.EstadoReserva)</td>
+                        <td>@Html.Partial("_EstadoBadge", r.EstadoCompra ?? "-")</td>
+                        <td class="text-end">@r.Total.ToString("N2")</td>
+                        <td class="text-nowrap">
+                            @if (r.PuedePagar)
+                            {
+                                @Html.ActionLink("Pagar", "Pagar", "Compras", new { id = r.ReservaId }, new { @class = "btn btn-sm btn-primary" })
+                            }
+                            @Html.ActionLink("Gestionar", "Gestionar", new { id = r.ReservaId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                            @Html.ActionLink("Detalle", "Confirmacion", "Compras", new { id = r.ReservaId }, new { @class = "btn btn-sm btn-link" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

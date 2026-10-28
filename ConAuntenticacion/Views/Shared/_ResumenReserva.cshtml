@@ -1,0 +1,74 @@
+﻿@model ConAuntenticacion.Models.ReservaResumenViewModel
+@* Resumen reutilizable de una reserva (pantallas 11, 12 y 14): Reserva, Compra y Pago se muestran por separado *@
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="row g-3 small">
+            <div class="col-6 col-md-3">
+                <span class="text-muted d-block">Código de reserva</span>
+                <span class="fs-5 fw-bold">@Model.CodigoReserva</span>
+            </div>
+            <div class="col-6 col-md-3">
+                <span class="text-muted d-block">Reserva</span>
+                @Html.Partial("_EstadoBadge", Model.EstadoReserva)
+                @if (Model.EstadoReserva == "PENDIENTE" && Model.FechaExpiracion.HasValue)
+                {
+                    <span class="d-block text-muted">Expira: @Model.FechaExpiracion.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                }
+            </div>
+            <div class="col-6 col-md-3">
+                <span class="text-muted d-block">Compra</span>
+                @Html.Partial("_EstadoBadge", Model.EstadoCompra ?? "-")
+            </div>
+            <div class="col-6 col-md-3">
+                <span class="text-muted d-block">Pago simulado</span>
+                @Html.Partial("_EstadoBadge", Model.EstadoPago ?? "SIN PAGO")
+                @if (!string.IsNullOrEmpty(Model.TarjetaPago) && Model.EstadoPago != null)
+                {
+                    <span class="d-block text-muted">@Model.TarjetaPago</span>
+                }
+            </div>
+            <div class="col-12 col-md-6">
+                <span class="text-muted d-block">Titular de la reserva</span>
+                @Model.Usuario · creada el @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle small">
+            <thead class="table-light">
+                <tr>
+                    <th>Vuelo</th>
+                    <th>Ruta</th>
+                    <th>Salida</th>
+                    <th>Asiento</th>
+                    <th>Pasajero</th>
+                    <th>Estado del asiento</th>
+                    <th class="text-end">Tarifa</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Detalle)
+                {
+                    string color = d.EstadoAsignacion == "CONFIRMADA" ? "asiento-rojo" : (d.EstadoAsignacion == "PENDIENTE" ? "asiento-morado" : "bg-secondary");
+                    string texto = d.EstadoAsignacion == "CONFIRMADA" ? "Ocupado (pagado)" : (d.EstadoAsignacion == "PENDIENTE" ? "Reservado (pendiente de pago)" : d.EstadoAsignacion);
+                    <tr>
+                        <td>@d.CodigoVuelo</td>
+                        <td>@d.Ruta</td>
+                        <td>@d.Salida.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><span class="badge @color" style="@(color.StartsWith("asiento") ? (color == "asiento-rojo" ? "background:#dc3545" : "background:#6f42c1") : "")">@d.Asiento</span></td>
+                        <td>@d.Pasajero<br /><span class="text-muted">@d.Documento</span></td>
+                        <td>@texto @(d.CheckInRealizado ? " · check-in ✓" : "")</td>
+                        <td class="text-end">@d.Importe.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr><td colspan="6" class="text-end">Subtotal</td><td class="text-end">@Model.Subtotal.ToString("N2")</td></tr>
+                <tr><td colspan="6" class="text-end">IVA</td><td class="text-end">@Model.Iva.ToString("N2")</td></tr>
+                <tr class="fw-bold"><td colspan="6" class="text-end">Total USD</td><td class="text-end">@Model.Total.ToString("N2")</td></tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

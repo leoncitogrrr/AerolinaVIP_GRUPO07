@@ -1,0 +1,124 @@
+﻿@model ConAuntenticacion.Models.ReportesViewModel
+@{
+    ViewBag.Title = "Consultas y reportes";
+}
+
+<h1 class="h3 mb-1">Consultas y reportes administrativos</h1>
+<p class="text-muted">Pantalla 21 · Consultas tabulares (sin dashboard ni auditoría en esta entrega).</p>
+@Html.Partial("_Mensajes")
+
+@using (Html.BeginForm("Reportes", "Admin", FormMethod.Get, new { @class = "row g-2 align-items-end mb-3 d-print-none" }))
+{
+    <div class="col-5 col-md-3">
+        @Html.LabelFor(m => m.Desde, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Desde, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+        @Html.ValidationMessageFor(m => m.Desde, "", new { @class = "text-danger" })
+    </div>
+    <div class="col-5 col-md-3">
+        @Html.LabelFor(m => m.Hasta, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Hasta, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+        @Html.ValidationMessageFor(m => m.Hasta, "", new { @class = "text-danger" })
+    </div>
+    <div class="col-2 col-md-2">
+        <button type="submit" class="btn btn-outline-dark w-100">Consultar</button>
+    </div>
+    <div class="col-12 col-md-2">
+        <button type="button" class="btn btn-outline-secondary w-100" onclick="window.print()">Imprimir</button>
+    </div>
+}
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<div class="row g-3">
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">Ventas por ruta (compras pagadas)</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Ruta</th><th class="text-end">Compras</th><th class="text-end">Pasajes</th><th class="text-end">Tarifas USD (sin IVA)</th></tr></thead>
+                    <tbody>
+                        @if (!Model.VentasPorRuta.Any())
+                        {
+                            <tr><td colspan="4" class="text-muted">Sin ventas en el rango.</td></tr>
+                        }
+                        @foreach (var v in Model.VentasPorRuta)
+                        {
+                            <tr><td>@v.Ruta</td><td class="text-end">@v.Compras</td><td class="text-end">@v.Pasajes</td><td class="text-end">@v.Total.ToString("N2")</td></tr>
+                        }
+                    </tbody>
+                    @if (Model.VentasPorRuta.Any())
+                    {
+                        <tfoot><tr class="fw-bold"><td>Total</td><td></td><td class="text-end">@Model.VentasPorRuta.Sum(x => x.Pasajes)</td><td class="text-end">@Model.VentasPorRuta.Sum(x => x.Total).ToString("N2")</td></tr></tfoot>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">Reservas por estado</div>
+            <ul class="list-group list-group-flush">
+                @if (!Model.ReservasPorEstado.Any())
+                {
+                    <li class="list-group-item text-muted">Sin reservas.</li>
+                }
+                @foreach (var e in Model.ReservasPorEstado)
+                {
+                    <li class="list-group-item d-flex justify-content-between">@Html.Partial("_EstadoBadge", e.Estado) <strong>@e.Cantidad</strong></li>
+                }
+            </ul>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">Pagos simulados por estado</div>
+            <ul class="list-group list-group-flush">
+                @if (!Model.PagosPorEstado.Any())
+                {
+                    <li class="list-group-item text-muted">Sin pagos.</li>
+                }
+                @foreach (var e in Model.PagosPorEstado)
+                {
+                    <li class="list-group-item d-flex justify-content-between">@Html.Partial("_EstadoBadge", e.Estado) <strong>@e.Cantidad</strong></li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-header fw-semibold">Ocupación por vuelo (vista vw_DisponibilidadVuelo)</div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Vuelo</th><th>Fecha</th><th>Ruta</th><th>Horario</th><th>Aeronave</th><th>Estado</th><th class="text-end">Ocupados</th><th class="text-end">Disponibles</th><th style="width:140px;">% ocupación</th></tr>
+            </thead>
+            <tbody>
+                @if (!Model.Ocupacion.Any())
+                {
+                    <tr><td colspan="9" class="text-muted">Sin vuelos en el rango.</td></tr>
+                }
+                @foreach (var o in Model.Ocupacion)
+                {
+                    int capacidad = o.Capacidad ?? 0;
+                    int ocupados = o.Ocupados ?? 0;
+                    int porcentaje = capacidad > 0 ? ocupados * 100 / capacidad : 0;
+                    <tr>
+                        <td>@o.CodigoVuelo</td>
+                        <td>@o.FechaOperacion.ToString("dd/MM/yyyy")</td>
+                        <td>@o.Origen → @o.Destino</td>
+                        <td>@o.HoraSalida.ToString(@"hh\:mm")</td>
+                        <td>@(o.Matricula ?? "Sin asignar")</td>
+                        <td>@Html.Partial("_EstadoBadge", o.EstadoVueloCodigo)</td>
+                        <td class="text-end">@ocupados</td>
+                        <td class="text-end">@(o.Disponibles ?? 0)</td>
+                        <td>
+                            <div class="progress" role="progressbar" aria-label="Ocupación @porcentaje %" aria-valuenow="@porcentaje" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar" style="width: @porcentaje%">@porcentaje %</div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

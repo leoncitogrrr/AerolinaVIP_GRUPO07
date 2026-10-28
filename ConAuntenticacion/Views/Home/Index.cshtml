@@ -1,0 +1,123 @@
+﻿@model ConAuntenticacion.Models.HomeViewModel
+@{
+    ViewBag.Title = "Inicio";
+}
+
+<main class="py-4">
+
+    <!-- ==================== BLOQUE PRINCIPAL (11.4.3) ==================== -->
+    <section class="p-5 mb-4 rounded-3 shadow-sm text-white text-center" style="background: linear-gradient(135deg, #0b1f3a 0%, #16345f 100%);" aria-labelledby="title">
+        <h1 id="title" class="display-5 fw-bold">Vuela a tu próximo destino</h1>
+        <p class="lead mb-0" style="color: #d4af37;">Viajes privados con atención personalizada.</p>
+    </section>
+
+    <!-- ==================== FORMULARIO «ENCUENTRA TU VUELO» ==================== -->
+    <section class="card shadow-sm border-0 mb-4" aria-labelledby="tituloBusqueda">
+        <div class="card-body p-4">
+            <h2 id="tituloBusqueda" class="h4 fw-bold mb-3">Encuentra tu vuelo</h2>
+
+            @using (Html.BeginForm("Resultados", "Vuelos", FormMethod.Get, new { id = "formBusqueda", role = "search" }))
+            {
+                @Html.ValidationSummary(true, "", new { @class = "text-danger", role = "alert" })
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-6 col-lg-3">
+                        @Html.LabelFor(m => m.Origen, "Origen *", new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.Origen, new SelectList(Model.Aeropuertos, "Value", "Text", Model.Origen), new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.Origen, "", new { @class = "text-danger", role = "alert" })
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        @Html.LabelFor(m => m.Destino, "Destino *", new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.Destino, new SelectList(Model.DestinosOrigen, "Value", "Text"), "Seleccionar destino", new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.Destino, "", new { @class = "text-danger", role = "alert" })
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        @Html.LabelFor(m => m.Fecha, "Fecha de salida *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Fecha, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", min = DateTime.Today.ToString("yyyy-MM-dd") })
+                        @Html.ValidationMessageFor(m => m.Fecha, "", new { @class = "text-danger", role = "alert" })
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        @Html.LabelFor(m => m.Pasajeros, "Pasajeros *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Pasajeros, new { @class = "form-control", type = "number", min = "1", max = "7", placeholder = "Indicar cantidad (1–7)" })
+                        @Html.ValidationMessageFor(m => m.Pasajeros, "", new { @class = "text-danger", role = "alert" })
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <button type="submit" id="btnBuscar" class="btn btn-primary btn-lg px-4">Buscar vuelos</button>
+                </div>
+
+                <!-- Aviso informativo -->
+                <p class="small text-muted mt-3 mb-0" role="note">Horarios sujetos a la programación establecida y disponibilidad real.</p>
+            }
+        </div>
+    </section>
+
+    <!-- ==================== DESTINOS (días desde la tabla Frecuencia) ==================== -->
+    <section aria-labelledby="tituloDestinos">
+        <h2 id="tituloDestinos" class="h4 fw-bold mb-3">Destinos</h2>
+        <div class="row g-3">
+            @foreach (var d in Model.Destinos)
+            {
+                <div class="col-12 col-md-4 d-flex">
+                    <div class="card w-100 shadow-sm border-0" style="border-top: 4px solid #d4af37 !important;">
+                        <div class="card-body">
+                            <h3 class="h5 fw-bold mb-1">
+                                @d.Ciudad
+                                @if (d.Escala != null)
+                                {
+                                    <span class="fs-6 fw-normal text-muted">(escala en @d.Escala)</span>
+                                }
+                            </h3>
+                            <p class="text-muted mb-0">@d.DiasTexto</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- ==================== BOTONES DE CUENTA ==================== -->
+    @if (!Request.IsAuthenticated)
+    {
+        <section class="text-center mt-4" aria-label="Cuenta">
+            @Html.ActionLink("Iniciar sesión", "Login", "Account", null, new { @class = "btn btn-outline-dark me-2" })
+            @Html.ActionLink("Registrarse", "Register", "Account", null, new { @class = "btn btn-dark" })
+        </section>
+    }
+</main>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(function () {
+            // El destino se filtra por las rutas activas desde el origen (JSON de Home/Destinos)
+            function cargarDestinos() {
+                var origen = $("#Origen").val();
+                var destino = $("#Destino");
+                $.getJSON("@Url.Action("Destinos", "Home")", { origen: origen }, function (lista) {
+                    destino.empty();
+                    if (lista.length === 0) {
+                        // Estado vacío
+                        destino.append($("<option>").val("").text("Sin destinos disponibles"));
+                        $("#btnBuscar").prop("disabled", true);
+                    } else {
+                        destino.append($("<option>").val("").text("Seleccionar destino"));
+                        $.each(lista, function (i, d) {
+                            destino.append($("<option>").val(d.codigo).text(d.texto));
+                        });
+                        $("#btnBuscar").prop("disabled", false);
+                    }
+                });
+            }
+            $("#Origen").on("change", cargarDestinos);
+
+            // Estado de carga: evita envíos repetidos
+            $("#formBusqueda").on("submit", function () {
+                if ($(this).valid()) {
+                    $("#btnBuscar").prop("disabled", true).text("Buscando…");
+                }
+            });
+        });
+    </script>
+}

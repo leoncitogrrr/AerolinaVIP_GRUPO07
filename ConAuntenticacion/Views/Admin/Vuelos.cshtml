@@ -1,0 +1,136 @@
+﻿@model ConAuntenticacion.Models.AdminVuelosViewModel
+@{
+    ViewBag.Title = "Administración de vuelos";
+    string desde = Model.Desde.Value.ToString("yyyy-MM-dd");
+    string hasta = Model.Hasta.Value.ToString("yyyy-MM-dd");
+    string[] estados = { "PROGRAMADO", "CONFIRMADO", "CANCELADO", "COMPLETADO" };
+}
+
+<h1 class="h3 mb-1">Administración de vuelos e itinerarios</h1>
+<p class="text-muted">Pantalla 18 · Un vuelo sin aeronave no se vende (RNP-01). Una aeronave no puede tener vuelos con horarios superpuestos (RNP-02).</p>
+@Html.Partial("_Mensajes")
+
+<div class="row g-3 mb-3">
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="h6">Filtrar por fecha</h2>
+                @using (Html.BeginForm("Vuelos", "Admin", FormMethod.Get, new { @class = "row g-2 align-items-end" }))
+                {
+                    <div class="col-5">
+                        <label for="Desde" class="form-label small">Desde</label>
+                        <input type="date" id="Desde" name="Desde" value="@desde" class="form-control" />
+                    </div>
+                    <div class="col-5">
+                        <label for="Hasta" class="form-label small">Hasta</label>
+                        <input type="date" id="Hasta" name="Hasta" value="@hasta" class="form-control" />
+                    </div>
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-outline-dark w-100">Ver</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="h6">Generar vuelos desde las frecuencias activas</h2>
+                @using (Html.BeginForm("GenerarVuelos", "Admin", FormMethod.Post, new { @class = "row g-2 align-items-end" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="col-5">
+                        <label for="FechaInicio" class="form-label small">Fecha inicial *</label>
+                        <input type="date" id="FechaInicio" name="FechaInicio" class="form-control" required min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-5">
+                        <label for="FechaFin" class="form-label small">Fecha final *</label>
+                        <input type="date" id="FechaFin" name="FechaFin" class="form-control" required min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-primary w-100">Generar</button>
+                    </div>
+                    <div class="col-12 form-text">Usa el procedimiento usp_GenerarVuelos; no duplica vuelos existentes.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3 small">
+    @Html.ActionLink("CRUD de vuelos", "Index", "VuelosAdmin", null, new { @class = "btn btn-sm btn-outline-secondary" })
+    @Html.ActionLink("Frecuencias", "Index", "Frecuencias", null, new { @class = "btn btn-sm btn-outline-secondary" })
+    @Html.ActionLink("Itinerarios", "Index", "Itinerarios", null, new { @class = "btn btn-sm btn-outline-secondary" })
+    @Html.ActionLink("Tramos de itinerario", "Index", "TramosItinerario", null, new { @class = "btn btn-sm btn-outline-secondary" })
+</div>
+
+@if (!Model.Vuelos.Any())
+{
+    <div class="alert alert-info" role="status">No hay vuelos en el rango seleccionado.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Vuelo</th>
+                    <th>Fecha</th>
+                    <th>Ruta</th>
+                    <th>Horario</th>
+                    <th>Itinerario</th>
+                    <th>Ocupación</th>
+                    <th style="min-width: 210px;">Aeronave</th>
+                    <th style="min-width: 210px;">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model.Vuelos)
+                {
+                    <tr class="@(v.AeronaveId == null && v.Estado != "CANCELADO" ? "table-warning" : "")">
+                        <td class="fw-bold">@v.CodigoVuelo</td>
+                        <td>@v.Fecha.ToString("ddd dd/MM/yyyy")</td>
+                        <td>@v.Ruta</td>
+                        <td>@v.HoraSalida.ToString(@"hh\:mm") – @v.HoraLlegada.ToString(@"hh\:mm")</td>
+                        <td class="small">@v.Itinerario</td>
+                        <td>@(v.AeronaveId == null ? "-" : v.Ocupados + " / " + v.Capacidad)</td>
+                        <td>
+                            @using (Html.BeginForm("AsignarAeronave", "Admin", FormMethod.Post, new { @class = "d-flex gap-1" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="VueloId" value="@v.VueloId" />
+                                <input type="hidden" name="desde" value="@desde" />
+                                <input type="hidden" name="hasta" value="@hasta" />
+                                <select name="AeronaveId" class="form-select form-select-sm" aria-label="Aeronave del vuelo @v.CodigoVuelo">
+                                    <option value="">(sin asignar)</option>
+                                    @foreach (var a in Model.Aeronaves)
+                                    {
+                                        <option value="@a.AeronaveId" @(a.AeronaveId == v.AeronaveId ? "selected" : "")>@a.Matricula @(a.EstadoAeronaveCodigo == "DISPONIBLE" ? "" : "(no disp.)")</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Asignar</button>
+                            }
+                        </td>
+                        <td>
+                            @using (Html.BeginForm("CambiarEstadoVuelo", "Admin", FormMethod.Post, new { @class = "d-flex gap-1" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="VueloId" value="@v.VueloId" />
+                                <input type="hidden" name="desde" value="@desde" />
+                                <input type="hidden" name="hasta" value="@hasta" />
+                                <select name="EstadoVueloCodigo" class="form-select form-select-sm" aria-label="Estado del vuelo @v.CodigoVuelo">
+                                    @foreach (string e in estados)
+                                    {
+                                        <option value="@e" @(e == v.Estado ? "selected" : "")>@e</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="small text-muted">Las filas en amarillo son vuelos sin aeronave asignada (no se comercializan).</p>
+}

@@ -1,0 +1,51 @@
+﻿@model ConAuntenticacion.Models.Ruta
+
+@{
+    ViewBag.Title = "Detalle · Rutas y tarifas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Detalle · Rutas y tarifas</h2>
+
+<div>
+    <h4>Ruta</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.TarifaReferencial)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TarifaReferencial)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Activa)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Activa)
+        </dd>
+
+        <dt>
+            Destino
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Aeropuerto.CodigoIATA)
+        </dd>
+
+        <dt>
+            Origen
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Aeropuerto1.CodigoIATA)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.RutaId }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>

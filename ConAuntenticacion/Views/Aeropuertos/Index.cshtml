@@ -1,0 +1,52 @@
+﻿@model IEnumerable<ConAuntenticacion.Models.Aeropuerto>
+
+@{
+    ViewBag.Title = "Aeropuertos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Aeropuertos</h2>
+
+<p>
+    @Html.ActionLink("Crear nuevo", "Create")
+</p>
+<table class="table table-hover align-middle">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.CodigoIATA)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Nombre)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Localidad)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Activo)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.CodigoIATA)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Nombre)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Localidad)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Activo)
+        </td>
+        <td>
+            @Html.ActionLink("Editar", "Edit", new { id=item.AeropuertoId }) |
+            @Html.ActionLink("Detalles", "Details", new { id=item.AeropuertoId }) |
+            @Html.ActionLink("Eliminar", "Delete", new { id=item.AeropuertoId })
+        </td>
+    </tr>
+}
+
+</table>

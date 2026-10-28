@@ -1,0 +1,67 @@
+﻿@model ConAuntenticacion.Models.ResultadosBusquedaViewModel
+@{
+    ViewBag.Title = "Resultados de búsqueda";
+    var b = Model.Busqueda;
+}
+
+<h1 class="h3 mb-1">Resultados de búsqueda y horarios</h1>
+<p class="text-muted">Pantalla 6</p>
+@Html.Partial("_Mensajes")
+
+<div class="alert alert-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span>
+        <strong>@b.Origen → @b.Destino</strong> ·
+        @b.Fecha.Value.ToString("dddd dd/MM/yyyy") ·
+        @b.Pasajeros pasajero(s)
+    </span>
+    @Html.ActionLink("Modificar búsqueda", "Buscar", "Vuelos", null, new { @class = "btn btn-sm btn-outline-dark" })
+</div>
+
+@if (!Model.Directos.Any() && !Model.Conexiones.Any())
+{
+    <div class="alert alert-info" role="status">
+        No hay vuelos que coincidan con su búsqueda para esa fecha.
+        Quito–Guayaquil opera martes, jueves y sábado; Quito–Manta lunes, miércoles y viernes;
+        Galápagos solo los domingos (con escala en Guayaquil).
+    </div>
+}
+
+@if (Model.Directos.Any())
+{
+    <h2 class="h5 mt-4">Vuelos directos</h2>
+    <div class="row g-3">
+        @foreach (var v in Model.Directos)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                @Html.Partial("_TarjetaVuelo", v, new ViewDataDictionary { { "Pasajeros", b.Pasajeros } })
+            </div>
+        }
+    </div>
+}
+
+@if (Model.Conexiones.Any())
+{
+    <h2 class="h5 mt-4">Itinerarios con escala</h2>
+    foreach (var c in Model.Conexiones)
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-header">
+                <strong>@c.Tramo1.Origen → @c.Tramo1.Destino → @c.Tramo2.Destino</strong>
+                <span class="badge bg-secondary ms-2">Escala en @c.Tramo1.CiudadDestino</span>
+                <div class="small text-muted">Cada tramo se reserva por separado (política DP-09). Llegada del tramo 1: @c.Tramo1.HoraLlegada.ToString(@"hh\:mm") · salida del tramo 2: @c.Tramo2.HoraSalida.ToString(@"hh\:mm").</div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <p class="small text-muted mb-1">Tramo 1</p>
+                        @Html.Partial("_TarjetaVuelo", c.Tramo1, new ViewDataDictionary { { "Pasajeros", b.Pasajeros } })
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <p class="small text-muted mb-1">Tramo 2</p>
+                        @Html.Partial("_TarjetaVuelo", c.Tramo2, new ViewDataDictionary { { "Pasajeros", b.Pasajeros } })
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

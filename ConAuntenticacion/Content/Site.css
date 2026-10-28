@@ -1,0 +1,68 @@
+﻿
+:root {
+    --azul-vip: #0b1f3a;
+    --azul-vip-2: #16345f;
+    --dorado-vip: #d4af37;
+    --gris-vip: #f3f5f8;
+}
+
+body {
+    background: var(--gris-vip);
+}
+
+.nav-vip {
+    background: var(--azul-vip);
+}
+
+.footer-vip {
+    background: var(--azul-vip);
+    color: #cfd6e2;
+}
+
+.text-dorado {
+    color: var(--dorado-vip) !important;
+}
+
+.text-azul {
+    color: var(--azul-vip) !important;
+}
+
+.btn-dorado {
+    background: var(--dorado-vip);
+    color: var(--azul-vip);
+    border: none;
+}
+
+    .btn-dorado:hover, .btn-dorado:focus {
+        background: #c19b22;
+        color: var(--azul-vip);
+    }
+
+.hero-vip {
+    background: linear-gradient(135deg, var(--azul-vip) 0%, var(--azul-vip-2) 100%);
+}
+
+.card-ruta {
+    border-top: 4px solid var(--dorado-vip) !important;
+}
+
+/* Foco visible para teclado (accesibilidad A2) */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 3px solid var(--dorado-vip);
+    outline-offset: 2px;
+}
+
+/* Listas horizontales del scaffolding */
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Mensajes de validación más visibles */
+.field-validation-error {
+    display: block;
+    font-size: .875rem;
+}
+
+.input-validation-error {
+    border-color: #dc3545 !important;
+}

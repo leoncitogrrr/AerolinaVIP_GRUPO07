@@ -1,0 +1,71 @@
+﻿@using ConAuntenticacion.Models
+@{
+    ViewBag.Title = "Panel del administrador";
+    bool esSuper = User.IsInRole(RolesSistema.SuperUsuario);
+}
+
+<h1 class="h3 mb-1">Panel del administrador</h1>
+<p class="text-muted">Pantalla 17 · Página de accesos a los módulos. El dashboard de indicadores no forma parte de la primera entrega.</p>
+@Html.Partial("_Mensajes")
+
+<div class="row g-3">
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h2 class="h5">Operación aérea</h2>
+                <ul class="list-unstyled mb-0">
+                    <li>@Html.ActionLink("Administración de vuelos e itinerarios (18)", "Vuelos")</li>
+                    <li>@Html.ActionLink("Aeropuertos", "Index", "Aeropuertos")</li>
+                    <li>@Html.ActionLink("Rutas y tarifas", "Index", "Rutas")</li>
+                    <li>@Html.ActionLink("Frecuencias (días y horarios)", "Index", "Frecuencias")</li>
+                    <li>@Html.ActionLink("Vuelos (CRUD)", "Index", "VuelosAdmin")</li>
+                    <li>@Html.ActionLink("Itinerarios", "Index", "Itinerarios")</li>
+                    <li>@Html.ActionLink("Tramos de itinerario", "Index", "TramosItinerario")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h2 class="h5">Flota</h2>
+                <ul class="list-unstyled mb-0">
+                    <li>@Html.ActionLink("Aeronaves y asignaciones (19)", "Aeronaves")</li>
+                    <li>@Html.ActionLink("Aeronaves (CRUD)", "Index", "Aeronaves")</li>
+                    <li>@Html.ActionLink("Modelos de aeronave", "Index", "ModelosAeronave")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h2 class="h5">Clientes y ventas</h2>
+                <ul class="list-unstyled mb-0">
+                    <li>@Html.ActionLink("Usuarios, pasajeros y reservas (20)", "Gestion")</li>
+                    <li>@Html.ActionLink("Pasajeros (CRUD)", "Index", "Pasajeros")</li>
+                    <li>@Html.ActionLink("Comprobantes", "Index", "Comprobantes")</li>
+                    <li>@Html.ActionLink("Consultas y reportes (21)", "Reportes")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    @if (esSuper)
+    {
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-warning">
+                <div class="card-body">
+                    <h2 class="h5">Configuración (solo SuperUsuario)</h2>
+                    <ul class="list-unstyled mb-0">
+                        <li>@Html.ActionLink("Registrar usuario con rol", "Register", "Account")</li>
+                        <li>@Html.ActionLink("Marcas de tarjeta", "Index", "MarcaTarjetas")</li>
+                        <li>@Html.ActionLink("Métodos de pago", "Index", "MetodosPago")</li>
+                        <li>@Html.ActionLink("Monedas", "Index", "Monedas")</li>
+                        <li>@Html.ActionLink("Tipos de documento", "Index", "TiposDocumento")</li>
+                        <li>@Html.ActionLink("Datos del emisor (comprobante)", "Index", "DatosEmisor")</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+</div>

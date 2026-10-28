@@ -1,0 +1,110 @@
+﻿@model ConAuntenticacion.Models.DatosPasajerosViewModel
+@{
+    ViewBag.Title = "Datos de los pasajeros";
+    var tipos = (List<SelectListItem>)ViewBag.TiposDocumento;
+}
+
+<h1 class="h3 mb-1">Registro de datos del pasajero</h1>
+<p class="text-muted">Pantalla 9 · Los campos con * son obligatorios.</p>
+@Html.Partial("_PasosCompra", 2)
+@Html.Partial("_Mensajes")
+@Html.Partial("_BarraVuelo", Model.Vuelo)
+
+@using (Html.BeginForm("Pasajeros", "Reservas", FormMethod.Post, new { id = "formPasajeros" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.VueloId)
+    @Html.ValidationSummary(true, "", new { @class = "text-danger", role = "alert" })
+
+    for (int i = 0; i < Model.Pasajeros.Count; i++)
+    {
+        <fieldset class="card shadow-sm mb-3">
+            <legend class="card-header h6 mb-0">
+                Pasajero @(i + 1) · Asiento <strong>@Model.Pasajeros[i].CodigoAsiento</strong>
+            </legend>
+            <div class="card-body">
+                @Html.HiddenFor(m => m.Pasajeros[i].NumeroAsiento)
+                @Html.HiddenFor(m => m.Pasajeros[i].CodigoAsiento)
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        @Html.LabelFor(m => m.Pasajeros[i].TipoDocumentoCodigo, "Tipo de documento *", new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.Pasajeros[i].TipoDocumentoCodigo, new SelectList(tipos, "Value", "Text", Model.Pasajeros[i].TipoDocumentoCodigo), new { @class = "form-select tipo-doc" })
+                        @Html.ValidationMessageFor(m => m.Pasajeros[i].TipoDocumentoCodigo, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-12 col-md-4">
+                        @Html.LabelFor(m => m.Pasajeros[i].NumeroDocumento, "Número de documento *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Pasajeros[i].NumeroDocumento, new { @class = "form-control num-doc", maxlength = "20", autocomplete = "off" })
+                        @Html.ValidationMessageFor(m => m.Pasajeros[i].NumeroDocumento, "", new { @class = "text-danger" })
+                        <div class="form-text">Cédula: 10 dígitos (se valida el dígito verificador).</div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        @Html.LabelFor(m => m.Pasajeros[i].FechaNacimiento, "Fecha de nacimiento *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Pasajeros[i].FechaNacimiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", max = DateTime.Today.ToString("yyyy-MM-dd") })
+                        @Html.ValidationMessageFor(m => m.Pasajeros[i].FechaNacimiento, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-12 col-md-6">
+                        @Html.LabelFor(m => m.Pasajeros[i].Nombres, "Nombres *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Pasajeros[i].Nombres, new { @class = "form-control", maxlength = "100" })
+                        @Html.ValidationMessageFor(m => m.Pasajeros[i].Nombres, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-12 col-md-6">
+                        @Html.LabelFor(m => m.Pasajeros[i].Apellidos, "Apellidos *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Pasajeros[i].Apellidos, new { @class = "form-control", maxlength = "100" })
+                        @Html.ValidationMessageFor(m => m.Pasajeros[i].Apellidos, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-12 col-md-6">
+                        @Html.LabelFor(m => m.Pasajeros[i].Correo, "Correo (opcional)", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Pasajeros[i].Correo, new { @class = "form-control", type = "email" })
+                        @Html.ValidationMessageFor(m => m.Pasajeros[i].Correo, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-12 col-md-6">
+                        @Html.LabelFor(m => m.Pasajeros[i].Telefono, "Teléfono (opcional)", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Pasajeros[i].Telefono, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.Pasajeros[i].Telefono, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    }
+
+    <div class="d-flex flex-wrap gap-2">
+        <button type="submit" id="btnContinuar" class="btn btn-primary px-4">Continuar</button>
+        @Html.ActionLink("Regresar a asientos", "SeleccionAsiento", new { id = Model.VueloId, pasajeros = Model.Pasajeros.Count }, new { @class = "btn btn-link" })
+    </div>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        // Validación de cédula ecuatoriana en el cliente (el servidor la repite en el modelo)
+        function cedulaValida(cedula) {
+            if (!/^[0-9]{10}$/.test(cedula)) return false;
+            var provincia = parseInt(cedula.substring(0, 2), 10);
+            if (provincia < 1 || provincia > 24) return false;
+            var suma = 0;
+            for (var i = 0; i < 9; i++) {
+                var d = parseInt(cedula[i], 10);
+                if (i % 2 === 0) { d = d * 2; if (d > 9) d = d - 9; }
+                suma += d;
+            }
+            var verificador = (10 - (suma % 10)) % 10;
+            return verificador === parseInt(cedula[9], 10);
+        }
+
+        $(function () {
+            $.validator.addMethod("cedulaec", function (valor, elemento) {
+                var tipo = $(elemento).closest("fieldset").find(".tipo-doc").val();
+                return this.optional(elemento) || tipo !== "CEDULA" || cedulaValida(valor);
+            }, "La cédula ecuatoriana no es válida.");
+
+            $(".num-doc").each(function () { $(this).rules("add", { cedulaec: true }); });
+
+            $("#formPasajeros").on("submit", function () {
+                if ($(this).valid()) {
+                    $("#btnContinuar").prop("disabled", true).text("Validando…");
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,27 @@
+﻿@model ConAuntenticacion.Models.Moneda
+
+@{
+    ViewBag.Title = "Detalle · Monedas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Detalle · Monedas</h2>
+
+<div>
+    <h4>Moneda</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Descripcion)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Descripcion)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.Codigo }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>

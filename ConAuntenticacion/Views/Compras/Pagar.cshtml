@@ -1,0 +1,183 @@
+﻿@model ConAuntenticacion.Models.PagoViewModel
+@using ConAuntenticacion.Models
+@{
+    ViewBag.Title = "Pago simulado";
+    var marcas = (List<MarcaTarjeta>)ViewBag.Marcas;
+    var r = Model.Reserva;
+}
+
+<h1 class="h3 mb-1">Proceso de compra y pago</h1>
+<p class="text-muted">Pantalla 11 · Pago <strong>simulado</strong> con fines académicos: no se realizan cobros reales.</p>
+@Html.Partial("_PasosCompra", 4)
+@Html.Partial("_Mensajes")
+
+<div class="row g-4">
+    <!-- Formulario de pago -->
+    <div class="col-12 col-lg-7">
+        @using (Html.BeginForm("Pagar", "Compras", FormMethod.Post, new { id = "formPago", autocomplete = "off" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.ReservaId)
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger", role = "alert" })
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.MetodoPagoCodigo, "Método de pago *", new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.MetodoPagoCodigo, new SelectList((List<SelectListItem>)ViewBag.MetodosPago, "Value", "Text", Model.MetodoPagoCodigo), new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.MetodoPagoCodigo, "", new { @class = "text-danger" })
+                    </div>
+
+                    <fieldset class="mb-3">
+                        <legend class="form-label fs-6">Marca de la tarjeta *</legend>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var m in marcas)
+                            {
+                                <input type="radio" class="btn-check marca" name="MarcaTarjetaCodigo" id="marca_@m.Codigo" value="@m.Codigo"
+                                       data-longitud="@m.LongitudNumero" data-cvv="@m.LongitudCodigoSeguridad" data-nombre="@m.Nombre"
+                                       @(Model.MarcaTarjetaCodigo == m.Codigo ? "checked" : "") />
+                                <label class="btn btn-outline-dark" for="marca_@m.Codigo">@m.Nombre</label>
+                            }
+                        </div>
+                        @Html.ValidationMessageFor(m => m.MarcaTarjetaCodigo, "", new { @class = "text-danger" })
+                    </fieldset>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.NumeroTarjeta, "Número de tarjeta (ficticio) *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.NumeroTarjeta, new { @class = "form-control", inputmode = "numeric", maxlength = "19", placeholder = "Solo números" })
+                        @Html.ValidationMessageFor(m => m.NumeroTarjeta, "", new { @class = "text-danger" })
+                        <div class="form-text" id="ayudaNumero">Seleccione la marca para conocer la longitud.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.NombreTitular, "Nombre del titular *", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.NombreTitular, new { @class = "form-control text-uppercase" })
+                        @Html.ValidationMessageFor(m => m.NombreTitular, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-4">
+                            @Html.LabelFor(m => m.MesExpiracion, "Mes *", new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.MesExpiracion, new SelectList((List<SelectListItem>)ViewBag.Meses, "Value", "Text", Model.MesExpiracion), "MM", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.MesExpiracion, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-4">
+                            @Html.LabelFor(m => m.AnioExpiracion, "Año *", new { @class = "form-label" })
+                            @Html.DropDownListFor(m => m.AnioExpiracion, new SelectList((List<SelectListItem>)ViewBag.Anios, "Value", "Text", Model.AnioExpiracion), "AAAA", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.AnioExpiracion, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-4">
+                            @Html.LabelFor(m => m.CodigoSeguridad, "CVV *", new { @class = "form-label" })
+                            @Html.PasswordFor(m => m.CodigoSeguridad, new { @class = "form-control", inputmode = "numeric", maxlength = "4" })
+                            @Html.ValidationMessageFor(m => m.CodigoSeguridad, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="alert alert-light border small mt-3 mb-3">
+                        <strong>Tarjetas de prueba:</strong> Visa 4111111111111111 · Mastercard 5555555555554444 ·
+                        American Express 378282246310005 · Diners Club 30569309025904.
+                        Una tarjeta terminada en <strong>0000</strong> (ej. Visa 4000000000020000) simula un <strong>pago rechazado</strong>.
+                        Solo se guardan la marca, los 4 últimos dígitos y el titular.
+                    </div>
+
+                    <button type="button" id="btnPagar" class="btn btn-primary w-100">Pagar @r.Total.ToString("N2") USD</button>
+                    @Html.ActionLink("Pagar más tarde (ver la reserva)", "Gestionar", "Reservas", new { id = Model.ReservaId }, new { @class = "btn btn-link w-100 mt-1" })
+                </div>
+            </div>
+
+            <!-- Modal de confirmación del pago (al pulsar Cancelar NO se registra ningún pago) -->
+            <div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="tituloPago" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="modal-title h5" id="tituloPago">Confirmar pago simulado</h2>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-1">Reserva <strong>@r.CodigoReserva</strong></p>
+                            <p class="mb-1">Tarjeta: <strong id="modalTarjeta"></strong></p>
+                            <p class="fs-4 fw-bold mb-0">@r.Total.ToString("N2") USD</p>
+                            <p class="small text-muted mt-2 mb-0">Operación simulada sin cobro real.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" id="btnConfirmarPago" class="btn btn-primary">Confirmar pago</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Resumen de la compra -->
+    <div class="col-12 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5">Resumen de la compra</h2>
+                <p class="small mb-2">Reserva <strong>@r.CodigoReserva</strong> · @Html.Partial("_EstadoBadge", r.EstadoReserva)
+                    @if (r.FechaExpiracion.HasValue)
+                    {
+                        <span class="d-block text-muted">Pague antes del @r.FechaExpiracion.Value.ToString("dd/MM/yyyy HH:mm") o los asientos se liberarán.</span>
+                    }
+                </p>
+                <ul class="list-unstyled small">
+                    @foreach (var d in r.Detalle)
+                    {
+                        <li class="border-bottom py-1">
+                            <strong>@d.CodigoVuelo</strong> · @d.Ruta<br />
+                            @d.Salida.ToString("dd/MM/yyyy HH:mm") · asiento <span class="badge" style="background:#6f42c1">@d.Asiento</span> · @d.Pasajero
+                            <span class="float-end">@d.Importe.ToString("N2")</span>
+                        </li>
+                    }
+                </ul>
+                <dl class="row small mb-0">
+                    <dt class="col-7 fw-normal">Subtotal</dt><dd class="col-5 text-end">@r.Subtotal.ToString("N2")</dd>
+                    <dt class="col-7 fw-normal">IVA (@((PoliticasAerolinea.PorcentajeIva * 100).ToString("0")) %)</dt><dd class="col-5 text-end">@r.Iva.ToString("N2")</dd>
+                    <dt class="col-7">Total USD</dt><dd class="col-5 text-end fw-bold fs-5">@r.Total.ToString("N2")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(function () {
+            // Ayuda según la marca: longitud del número y del CVV (configuración de la tabla MarcaTarjeta)
+            function actualizarMarca() {
+                var m = $(".marca:checked");
+                if (m.length) {
+                    $("#ayudaNumero").text(m.data("nombre") + ": " + m.data("longitud") + " dígitos · CVV de " + m.data("cvv") + " dígitos.");
+                    $("#NumeroTarjeta").attr("maxlength", m.data("longitud"));
+                    $("#CodigoSeguridad").attr("maxlength", m.data("cvv"));
+                }
+            }
+            $(".marca").on("change", actualizarMarca);
+            actualizarMarca();
+
+            // Máscara: solo dígitos
+            $("#NumeroTarjeta, #CodigoSeguridad").on("input", function () {
+                this.value = this.value.replace(/[^0-9]/g, "");
+            });
+
+            // Primero se valida el formulario; si es válido se abre el modal de confirmación
+            $("#btnPagar").on("click", function () {
+                var form = $("#formPago");
+                if (!$(".marca:checked").length) {
+                    alert("Seleccione la marca de la tarjeta.");
+                    return;
+                }
+                if (form.valid()) {
+                    var numero = $("#NumeroTarjeta").val();
+                    $("#modalTarjeta").text($(".marca:checked").data("nombre") + " **** " + numero.substring(numero.length - 4));
+                    new bootstrap.Modal(document.getElementById("modalPago")).show();
+                }
+            });
+
+            $("#formPago").on("submit", function () {
+                $("#btnConfirmarPago").prop("disabled", true).text("Procesando pago…");
+            });
+        });
+    </script>
+}

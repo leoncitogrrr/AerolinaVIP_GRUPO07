@@ -1,0 +1,18 @@
+﻿@model ConAuntenticacion.Models.AsientoViewModel
+@* Un asiento del mapa. El color viene de vw_EstadoAsientoVuelo (ColorEstado), no se fija en el HTML. *@
+@{
+    bool seleccionable = ViewData["Seleccionable"] != null && (bool)ViewData["Seleccionable"];
+    string posicion = (string)ViewData["Posicion"];
+    string css = Model.ColorEstado == "Verde" ? "asiento-verde" : (Model.ColorEstado == "Morado" ? "asiento-morado" : "asiento-rojo");
+    string texto = Model.EstadoVisual == "DISPONIBLE" ? "Disponible" : (Model.EstadoVisual == "RESERVADO" ? "Reservado" : "Ocupado");
+    bool habilitado = seleccionable && Model.EstadoVisual == "DISPONIBLE";
+}
+<button type="button" class="asiento @css" style="@posicion"
+        @(habilitado ? "" : "disabled")
+        data-numero="@Model.NumeroAsiento" data-codigo="@Model.Codigo" data-ubicacion="@Model.Ubicacion"
+        title="@Model.Codigo · @Model.Ubicacion · @texto"
+        aria-pressed="false"
+        aria-label="Asiento @Model.Codigo, @texto">
+    <strong>@Model.Codigo</strong>
+    <small class="estado-texto">@texto</small>
+</button>

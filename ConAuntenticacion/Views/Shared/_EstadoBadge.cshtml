@@ -1,0 +1,33 @@
+﻿@model string
+@* Etiqueta de estado: el estado siempre se escribe (no depende solo del color, regla A5) *@
+@{
+    string css;
+    switch (Model)
+    {
+        case "CONFIRMADA":
+        case "PAGADA":
+        case "APROBADO":
+        case "EMITIDO":
+        case "COMPLETADO":
+        case "CONFIRMADO":
+            css = "bg-success";
+            break;
+        case "PENDIENTE":
+            css = "bg-warning text-dark";
+            break;
+        case "CANCELADA":
+        case "ANULADA":
+        case "RECHAZADO":
+        case "ANULADO":
+        case "CANCELADO":
+            css = "bg-danger";
+            break;
+        case "REVERSADO":
+            css = "bg-info text-dark";
+            break;
+        default:
+            css = "bg-secondary";
+            break;
+    }
+}
+<span class="badge @css">@Model</span>

@@ -1,0 +1,63 @@
+﻿@model IEnumerable<ConAuntenticacion.Models.DatosEmisor>
+
+@{
+    ViewBag.Title = "Datos del emisor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Datos del emisor</h2>
+
+<p>
+    <span class="text-muted small">Existe un solo registro de emisor (encabezado del comprobante PDF): solo se edita.</span>
+</p>
+<table class="table table-hover align-middle">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.NombreComercial)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Identificacion)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Direccion)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Telefono)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Correo)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.LeyendaComprobante)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.NombreComercial)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Identificacion)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Direccion)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Telefono)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Correo)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.LeyendaComprobante)
+        </td>
+        <td>
+            @Html.ActionLink("Editar", "Edit", new { id=item.DatosEmisorId }) |
+            @Html.ActionLink("Detalles", "Details", new { id=item.DatosEmisorId })
+        </td>
+    </tr>
+}
+
+</table>

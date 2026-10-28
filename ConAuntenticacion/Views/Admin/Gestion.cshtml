@@ -1,0 +1,135 @@
+﻿@model ConAuntenticacion.Models.GestionViewModel
+@using ConAuntenticacion.Models
+@{
+    ViewBag.Title = "Usuarios y reservas";
+    bool esSuper = User.IsInRole(RolesSistema.SuperUsuario);
+    bool esAdmin = esSuper || User.IsInRole(RolesSistema.Administrador);
+    string[] estados = { "", "PENDIENTE", "CONFIRMADA", "CANCELADA", "EXPIRADA" };
+    string[] roles = { "Cliente", "Counter", "Administrador", "SuperUsuario" };
+}
+
+<h1 class="h3 mb-1">Gestión de usuarios, pasajeros y reservas</h1>
+<p class="text-muted">Pantalla 20 · Solo el SuperUsuario asigna roles.</p>
+@Html.Partial("_Mensajes")
+
+@using (Html.BeginForm("Gestion", "Admin", FormMethod.Get, new { @class = "row g-2 align-items-end mb-3" }))
+{
+    <div class="col-12 col-md-5">
+        @Html.LabelFor(m => m.Buscar, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Buscar, new { @class = "form-control", placeholder = "RV00000006 o cliente1" })
+    </div>
+    <div class="col-8 col-md-3">
+        @Html.LabelFor(m => m.Estado, new { @class = "form-label" })
+        <select id="Estado" name="Estado" class="form-select">
+            @foreach (string e in estados)
+            {
+                <option value="@e" @(e == (Model.Estado ?? "") ? "selected" : "")>@(e == "" ? "Todos" : e)</option>
+            }
+        </select>
+    </div>
+    <div class="col-4 col-md-2">
+        <button type="submit" class="btn btn-outline-dark w-100">Buscar</button>
+    </div>
+}
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+    @Html.ActionLink("Pasajeros (CRUD)", "Index", "Pasajeros", null, new { @class = "btn btn-sm btn-outline-secondary" })
+    @Html.ActionLink("Check-in", "Index", "CheckIn", null, new { @class = "btn btn-sm btn-outline-secondary" })
+    @Html.ActionLink("Comprobantes", "Index", "Comprobantes", null, new { @class = "btn btn-sm btn-outline-secondary" })
+    @if (esSuper)
+    {
+        @Html.ActionLink("Registrar usuario con rol", "Register", "Account", null, new { @class = "btn btn-sm btn-warning" })
+    }
+</div>
+
+<h2 class="h5">Reservas (@Model.Reservas.Count)</h2>
+@if (!Model.Reservas.Any())
+{
+    <div class="alert alert-info" role="status">No se encontraron reservas.</div>
+}
+else
+{
+    <div class="table-responsive mb-4">
+        <table class="table table-sm table-hover align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Código</th>
+                    <th>Titular</th>
+                    <th>Creada</th>
+                    <th>Pasajes</th>
+                    <th>Reserva</th>
+                    <th>Compra</th>
+                    <th class="text-end">Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Reservas)
+                {
+                    <tr>
+                        <td class="fw-bold">@r.CodigoReserva</td>
+                        <td class="small">@r.Usuario</td>
+                        <td class="small">@r.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@r.Detalle.Count</td>
+                        <td>@Html.Partial("_EstadoBadge", r.EstadoReserva)</td>
+                        <td>@Html.Partial("_EstadoBadge", r.EstadoCompra ?? "-")</td>
+                        <td class="text-end">@r.Total.ToString("N2")</td>
+                        <td class="text-nowrap">
+                            @Html.ActionLink("Detalle", "Confirmacion", "Compras", new { id = r.ReservaId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                            @Html.ActionLink("Gestionar", "Gestionar", "Reservas", new { id = r.ReservaId }, new { @class = "btn btn-sm btn-link" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (esAdmin)
+{
+    <h2 class="h5">Usuarios (@Model.Usuarios.Count)</h2>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    @if (esSuper)
+                    {
+                        <th style="min-width: 240px;">Cambiar rol</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model.Usuarios)
+                {
+                    <tr>
+                        <td class="fw-bold">@u.UserName</td>
+                        <td>@u.NombreCompleto</td>
+                        <td>@u.Email</td>
+                        <td>@u.Roles</td>
+                        @if (esSuper)
+                        {
+                            <td>
+                                @using (Html.BeginForm("AsignarRol", "Admin", FormMethod.Post, new { @class = "d-flex gap-1" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="UsuarioId" value="@u.Id" />
+                                    <select name="Rol" class="form-select form-select-sm" aria-label="Rol de @u.UserName">
+                                        @foreach (string rol in roles)
+                                        {
+                                            <option value="@rol" @(u.Roles == rol ? "selected" : "")>@rol</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,0 +1,86 @@
+﻿@model ConAuntenticacion.Models.CheckInIndexViewModel
+@using ConAuntenticacion.Models
+@{
+    ViewBag.Title = "Check-in";
+    bool esCounter = User.IsInRole(RolesSistema.Counter);
+}
+
+<h1 class="h3 mb-1">Check-in</h1>
+<p class="text-muted">
+    Pantalla 15 · Política propuesta (DP-12): el check-in en línea se abre @PoliticasAerolinea.HorasAperturaCheckIn horas (7 días)
+    antes de la salida y se cierra @PoliticasAerolinea.HorasCierreCheckIn horas antes. Solo para asientos pagados (rojos).
+</p>
+@Html.Partial("_Mensajes")
+
+@using (Html.BeginForm("Index", "CheckIn", FormMethod.Get, new { @class = "row g-2 align-items-end mb-3" }))
+{
+    <div class="col-12 col-md-4">
+        @Html.LabelFor(m => m.CodigoReserva, esCounter ? "Código de reserva *" : "Código de reserva (opcional)", new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.CodigoReserva, new { @class = "form-control text-uppercase", placeholder = "RV00000000" })
+        @Html.ValidationMessageFor(m => m.CodigoReserva, "", new { @class = "text-danger" })
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-dark">Buscar</button>
+    </div>
+}
+
+@if (!Model.Elegibles.Any())
+{
+    <div class="alert alert-info" role="status">
+        @(esCounter && string.IsNullOrEmpty(Model.CodigoReserva)
+            ? "Ingrese el código de reserva del cliente para ver sus pasajeros."
+            : "No hay pasajeros con asientos confirmados en vuelos próximos.")
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Reserva</th>
+                    <th>Pasajero</th>
+                    <th>Vuelo</th>
+                    <th>Salida</th>
+                    <th>Asiento</th>
+                    <th>Check-in</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.Elegibles)
+                {
+                    <tr>
+                        <td>@e.CodigoReserva</td>
+                        <td>@e.Pasajero<br /><small class="text-muted">@e.Documento</small></td>
+                        <td>@e.CodigoVuelo<br /><small class="text-muted">@e.Ruta</small></td>
+                        <td>@e.Salida.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><span class="badge bg-danger">@e.Asiento</span></td>
+                        <td>@e.Estado</td>
+                        <td style="min-width: 260px;">
+                            @if (e.CheckInId.HasValue)
+                            {
+                                @Html.ActionLink("Ver pase de abordar", "Pase", new { id = e.CheckInId }, new { @class = "btn btn-sm btn-outline-success" })
+                            }
+                            else if (e.PuedeHacerCheckIn)
+                            {
+                                using (Html.BeginForm("Registrar", "CheckIn", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="AsignacionId" value="@e.AsignacionId" />
+                                    <input type="hidden" name="codigoReserva" value="@Model.CodigoReserva" />
+                                    <div class="form-check small mb-1">
+                                        <input class="form-check-input" type="checkbox" name="ConfirmaDocumentos" value="true" id="doc_@e.AsignacionId" required />
+                                        <input type="hidden" name="ConfirmaDocumentos" value="false" />
+                                        <label class="form-check-label" for="doc_@e.AsignacionId">Porta su documento de identidad vigente</label>
+                                    </div>
+                                    <button type="submit" class="btn btn-sm btn-primary">Hacer check-in</button>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

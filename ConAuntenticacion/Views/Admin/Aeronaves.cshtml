@@ -1,0 +1,69 @@
+﻿@model List<ConAuntenticacion.Models.AeronaveResumenViewModel>
+@{
+    ViewBag.Title = "Administración de aeronaves";
+    int sinAeronave = (int)ViewBag.SinAeronave;
+}
+
+<h1 class="h3 mb-1">Administración de aeronaves</h1>
+<p class="text-muted">Pantalla 19 · Flota de 3 Embraer Phenom 300E de 7 asientos (RN-01, RN-02, RN-03). Próximos 30 días.</p>
+@Html.Partial("_Mensajes")
+
+@if (sinAeronave > 0)
+{
+    <div class="alert alert-warning" role="alert">
+        Hay <strong>@sinAeronave</strong> vuelo(s) en los próximos 30 días sin aeronave asignada.
+        @Html.ActionLink("Asignar en Vuelos", "Vuelos", null, new { @class = "alert-link" })
+    </div>
+}
+
+<div class="mb-3">
+    @Html.ActionLink("CRUD de aeronaves", "Index", "Aeronaves", null, new { @class = "btn btn-sm btn-outline-secondary" })
+    @Html.ActionLink("Modelos de aeronave", "Index", "ModelosAeronave", null, new { @class = "btn btn-sm btn-outline-secondary" })
+</div>
+
+<div class="row g-3">
+    @foreach (var a in Model)
+    {
+        <div class="col-12 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold fs-5">@a.Matricula</span>
+                    @Html.Partial("_EstadoBadge", a.Estado)
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">@a.Modelo · @a.Capacidad asientos</p>
+
+                    @using (Html.BeginForm("CambiarEstadoAeronave", "Admin", FormMethod.Post, new { @class = "d-flex gap-1 mb-3" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="AeronaveId" value="@a.AeronaveId" />
+                        <select name="EstadoAeronaveCodigo" class="form-select form-select-sm" aria-label="Estado de @a.Matricula">
+                            <option value="DISPONIBLE" @(a.Estado == "DISPONIBLE" ? "selected" : "")>DISPONIBLE</option>
+                            <option value="NO_DISPONIBLE" @(a.Estado == "NO_DISPONIBLE" ? "selected" : "")>NO_DISPONIBLE</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
+                    }
+
+                    <h2 class="h6">Próximos vuelos asignados (@a.ProximosVuelos.Count)</h2>
+                    @if (!a.ProximosVuelos.Any())
+                    {
+                        <p class="small text-muted mb-0">Sin vuelos asignados.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-unstyled small mb-0" style="max-height: 260px; overflow-y: auto;">
+                            @foreach (var v in a.ProximosVuelos)
+                            {
+                                <li class="border-bottom py-1">
+                                    <strong>@v.CodigoVuelo</strong> · @v.Fecha.ToString("ddd dd/MM") ·
+                                    @v.HoraSalida.ToString(@"hh\:mm")–@v.HoraLlegada.ToString(@"hh\:mm") · @v.Ruta
+                                    <span class="float-end">@v.Ocupados/@v.Capacidad</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

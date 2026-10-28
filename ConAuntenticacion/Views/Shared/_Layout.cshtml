@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Aerolínea VIP</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
+        <div class="container">
+            @Html.ActionLink("AEROLÍNEA VIP", "Index", "Home", new { area = "" }, new { @class = "navbar-brand fw-bold" })
+            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Alternar navegación" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+
+            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+
+                    <li>@Html.ActionLink("Inicio", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+
+                    @* Público *@
+                    <li>@Html.ActionLink("Vuelos", "Buscar", "Vuelos", new { area = "" }, new { @class = "nav-link" })</li>
+
+                    @* Cliente *@
+                    @if (User.IsInRole("Cliente"))
+                    {
+                        <li>@Html.ActionLink("Mis reservas", "MisReservas", "Reservas", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li>@Html.ActionLink("Check-in", "Index", "CheckIn", new { area = "" }, new { @class = "nav-link" })</li>
+                        <li>@Html.ActionLink("Comprobantes", "Index", "Comprobantes", new { area = "" }, new { @class = "nav-link" })</li>
+                    }
+
+                    @* Counter *@
+                    @if (User.IsInRole("Counter"))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Counter</a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("Pasajeros", "Index", "Pasajeros", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Reservas de clientes", "Gestion", "Admin", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Check-in", "Index", "CheckIn", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Comprobantes", "Index", "Comprobantes", new { area = "" }, new { @class = "dropdown-item" })</li>
+                            </ul>
+                        </li>
+                    }
+
+                    @* Administrador y SuperUsuario *@
+                    @if (User.IsInRole("Administrador") || User.IsInRole("SuperUsuario"))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Administración</a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("Panel de accesos", "Index", "Admin", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>@Html.ActionLink("Aeropuertos", "Index", "Aeropuertos", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Rutas", "Index", "Rutas", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Frecuencias", "Index", "Frecuencias", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Vuelos", "Index", "VuelosAdmin", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Itinerarios", "Index", "Itinerarios", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Tramos de itinerario", "Index", "TramosItinerario", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Modelos de aeronave", "Index", "ModelosAeronave", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Aeronaves", "Index", "Aeronaves", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Pasajeros", "Index", "Pasajeros", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>@Html.ActionLink("Usuarios y reservas", "Gestion", "Admin", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Reportes", "Reportes", "Admin", new { area = "" }, new { @class = "dropdown-item" })</li>
+                            </ul>
+                        </li>
+                    }
+
+                    @* Solo SuperUsuario *@
+                    @if (User.IsInRole("SuperUsuario"))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Configuración</a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("Registrar usuario con rol", "Register", "Account", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>@Html.ActionLink("Marcas de tarjeta", "Index", "MarcaTarjetas", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Métodos de pago", "Index", "MetodosPago", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Monedas", "Index", "Monedas", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Tipos de documento", "Index", "TiposDocumento", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Datos del emisor", "Index", "DatosEmisor", new { area = "" }, new { @class = "dropdown-item" })</li>
+                            </ul>
+                        </li>
+                    }
+
+                    @*@if (User.Identity.IsAuthenticated)
+        {
+            <li>@Html.ActionLink("Pelicula", "Index", "Pelicula", new { area = "" }, new { @class = "nav-link" })</li>
+        }*@
+
+                </ul>
+                @Html.Partial("_LoginPartial")
+            </div>
+
+
+        </div>
+    </nav>
+    <div class="container body-content">
+        @RenderBody()
+        <hr class="mt-5 mb-4 border-secondary opacity-25" />
+        <footer class="text-center pb-4 text-muted">
+            <p class="mb-1 small">&copy; @DateTime.Now.Year · Aerolínea VIP · GRUPO 7 · ESPE · Quito, Ecuador</p>
+            <p class="mb-0 small">Proyecto. Pagos simulados: no se realizan cobros reales. Horarios sujetos a la programación y disponibilidad.</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

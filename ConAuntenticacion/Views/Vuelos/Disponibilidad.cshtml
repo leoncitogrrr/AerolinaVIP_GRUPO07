@@ -1,0 +1,37 @@
+﻿@model ConAuntenticacion.Models.DisponibilidadViewModel
+@{
+    ViewBag.Title = "Disponibilidad de asientos";
+    var v = Model.Vuelo;
+}
+
+<h1 class="h3 mb-1">Consulta de disponibilidad de asientos</h1>
+<p class="text-muted">Pantalla 7 · Solo consulta: para elegir un asiento debe iniciar sesión.</p>
+@Html.Partial("_Mensajes")
+@Html.Partial("_BarraVuelo", v)
+
+@if (!Model.Asientos.Any())
+{
+    <div class="alert alert-warning" role="alert">El vuelo no tiene aeronave asignada; sus asientos no pueden consultarse ni venderse (RNP-01).</div>
+}
+else
+{
+    if (v.Disponibles == 0)
+    {
+        <div class="alert alert-warning" role="alert">No quedan asientos disponibles en este vuelo.</div>
+    }
+    else if (v.Disponibles == 1)
+    {
+        <div class="alert alert-warning" role="alert">¡Queda el último asiento disponible!</div>
+    }
+
+    @Html.Partial("_MapaAsientos", Model.Asientos, new ViewDataDictionary { { "Seleccionable", false } })
+}
+
+<div class="d-flex flex-wrap gap-2 mt-4">
+    @Html.ActionLink("Actualizar disponibilidad", "Disponibilidad", "Vuelos", new { id = v.VueloId, pasajeros = Model.Pasajeros }, new { @class = "btn btn-outline-secondary" })
+    @if (v.Comercializable && v.Disponibles >= Model.Pasajeros)
+    {
+        @Html.ActionLink("Seleccionar asiento y reservar", "SeleccionAsiento", "Reservas", new { id = v.VueloId, pasajeros = Model.Pasajeros }, new { @class = "btn btn-primary" })
+    }
+    <a href="javascript:history.back()" class="btn btn-link">Regresar</a>
+</div>

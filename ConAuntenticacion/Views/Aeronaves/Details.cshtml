@@ -1,0 +1,43 @@
+﻿@model ConAuntenticacion.Models.Aeronave
+
+@{
+    ViewBag.Title = "Detalle · Aeronaves";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Detalle · Aeronaves</h2>
+
+<div>
+    <h4>Aeronave</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Matricula)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Matricula)
+        </dd>
+
+        <dt>
+            Estado
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EstadoAeronave.Descripcion)
+        </dd>
+
+        <dt>
+            Fabricante
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ModeloAeronave.Fabricante)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.AeronaveId }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>

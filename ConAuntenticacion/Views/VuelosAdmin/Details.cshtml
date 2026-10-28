@@ -1,0 +1,51 @@
+﻿@model ConAuntenticacion.Models.Vuelo
+
+@{
+    ViewBag.Title = "Detalle · Vuelos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Detalle · Vuelos</h2>
+
+<div>
+    <h4>Vuelo</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.FechaOperacion)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FechaOperacion)
+        </dd>
+
+        <dt>
+            Aeronave
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Aeronave.Matricula)
+        </dd>
+
+        <dt>
+            Estado
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EstadoVuelo.Descripcion)
+        </dd>
+
+        <dt>
+            Frecuencia
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Frecuencia.FrecuenciaId)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.VueloId }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>
