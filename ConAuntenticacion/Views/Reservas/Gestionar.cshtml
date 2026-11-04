@@ -2,14 +2,85 @@
 @using ConAuntenticacion.Models
 @{
     ViewBag.Title = "Gestión de la reserva";
+    var asientosLibres = ViewBag.AsientosLibres as Dictionary<int, List<AsientoViewModel>> ?? new Dictionary<int, List<AsientoViewModel>>();
+    var cambiables = Model.Detalle.Where(d => (d.EstadoAsignacion == "PENDIENTE" || d.EstadoAsignacion == "CONFIRMADA")
+                                           && !d.CheckInRealizado
+                                           && d.Salida.AddHours(-PoliticasAerolinea.HorasCierreCheckIn) > DateTime.Now).ToList();
 }
 
-<h1 class="h3 mb-1">Gestión de reservas y cancelaciones</h1>
+<h1 class="h3 mb-1">Gestión de reservas, cambios y cancelaciones</h1>
 <p class="text-muted">Pantalla 14</p>
 @Html.Partial("_Mensajes")
-@Html.ValidationSummary(false, "", new { @class = "alert alert-danger", role = "alert" })
+@if (!ViewData.ModelState.IsValid)
+{
+    @Html.ValidationSummary(false, "", new { @class = "alert alert-danger", role = "alert" })
+}
 
 @Html.Partial("_ResumenReserva", Model)
+
+<div class="card shadow-sm mt-4">
+    <div class="card-header fw-semibold">Cambio de asiento</div>
+    <div class="card-body">
+        <p class="small mb-2">
+            Se puede cambiar el asiento de una reserva pendiente o pagada mientras el pasajero no haya hecho el check-in
+            y falten más de @PoliticasAerolinea.HorasCierreCheckIn h para la salida. Solo se ofrecen asientos
+            <span class="badge bg-success">disponibles</span>; el asiento anterior queda libre.
+        </p>
+        @if (cambiables.Count == 0)
+        {
+            <div class="alert alert-secondary mb-0" role="status">Ningún pasajero de esta reserva puede cambiar de asiento en este momento.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Pasajero</th>
+                            <th>Vuelo</th>
+                            <th>Asiento actual</th>
+                            <th style="min-width: 260px;">Nuevo asiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in cambiables)
+                        {
+                            List<AsientoViewModel> libres = asientosLibres.ContainsKey(d.VueloId) ? asientosLibres[d.VueloId] : new List<AsientoViewModel>();
+                            <tr>
+                                <td>@d.Pasajero</td>
+                                <td class="small">@d.CodigoVuelo · @d.Fecha.ToString("dd/MM/yyyy") @d.HoraSalida.ToString(@"hh\:mm")</td>
+                                <td><span class="badge bg-secondary">@d.Asiento</span></td>
+                                <td>
+                                    @if (libres.Count == 0)
+                                    {
+                                        <span class="small text-muted">No hay asientos libres en este vuelo.</span>
+                                    }
+                                    else
+                                    {
+                                        using (Html.BeginForm("CambiarAsiento", "Reservas", FormMethod.Post, new { @class = "d-flex gap-1 form-cambio" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="ReservaId" value="@Model.ReservaId" />
+                                            <input type="hidden" name="AsignacionId" value="@d.AsignacionId" />
+                                            <select name="NuevoAsiento" class="form-select form-select-sm" required aria-label="Nuevo asiento para @d.Pasajero">
+                                                <option value="">Seleccionar…</option>
+                                                @foreach (var s in libres)
+                                                {
+                                                    <option value="@s.NumeroAsiento">@s.Codigo · @s.Ubicacion</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">Cambiar</button>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
 
 <div class="card shadow-sm mt-4">
     <div class="card-header fw-semibold">Cancelación</div>
@@ -75,19 +146,36 @@
     {
         @Html.ActionLink("Pagar ahora", "Pagar", "Compras", new { id = Model.ReservaId }, new { @class = "btn btn-primary" })
     }
-    @Html.ActionLink("Volver a mis reservas", "MisReservas", null, new { @class = "btn btn-link" })
+    @if (User.IsInRole(RolesSistema.Counter) || User.IsInRole(RolesSistema.Administrador) || User.IsInRole(RolesSistema.SuperUsuario))
+    {
+        @Html.ActionLink("Volver a reservas de clientes", "Gestion", "Admin", null, new { @class = "btn btn-link" })
+    }
+    else
+    {
+        @Html.ActionLink("Volver a mis reservas", "MisReservas", null, new { @class = "btn btn-link" })
+    }
 </div>
 
 @section Scripts {
     <script>
-        $(function () {
-            $("#btnCancelar").on("click", function () {
-                if (!$("#ConfirmaCancelacion").is(":checked")) {
-                    alert("Marque la casilla para confirmar la cancelación.");
-                    return;
-                }
-                new bootstrap.Modal(document.getElementById("modalCancelar")).show();
-            });
-        });
+                        $(function () {
+                            // Cambio de asiento: pide confirmación antes de enviar
+                            $(".form-cambio").on("submit", function () {
+                                var asiento = $(this).find("select option:selected").text();
+                                if (!$(this).find("select").val()) {
+                                    alert("Seleccione el nuevo asiento.");
+                                    return false;
+                                }
+                                return confirm("¿Cambiar al asiento " + asiento + "?");
+                            });
+
+                            $("#btnCancelar").on("click", function () {
+                                if (!$("#ConfirmaCancelacion").is(":checked")) {
+                                    alert("Marque la casilla para confirmar la cancelación.");
+                                    return;
+                                }
+                                new bootstrap.Modal(document.getElementById("modalCancelar")).show();
+                            });
+                        });
     </script>
 }

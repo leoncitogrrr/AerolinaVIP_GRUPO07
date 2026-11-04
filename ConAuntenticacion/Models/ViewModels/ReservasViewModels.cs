@@ -6,10 +6,8 @@ using System.Web;
 
 namespace ConAuntenticacion.Models
 {
-    // =====================================================================
     // DATOS TEMPORALES DE LA COMPRA (se guardan en Session hasta confirmar)
-    // La selección es TEMPORAL: no bloquea asientos (sin concurrencia avanzada).
-    // =====================================================================
+    // La selección es TEMPORAL: no bloquea asientos 
     [Serializable]
     public class ReservaEnCurso
     {
@@ -19,9 +17,7 @@ namespace ConAuntenticacion.Models
         public List<PasajeroReservaViewModel> Pasajeros { get; set; }
     }
 
-    // =====================================================================
     // PANTALLA 8: SELECCIÓN DE ASIENTO
-    // =====================================================================
     public class SeleccionAsientoViewModel : IValidatableObject
     {
         [Required]
@@ -80,9 +76,7 @@ namespace ConAuntenticacion.Models
         }
     }
 
-    // =====================================================================
     // PANTALLA 9: DATOS DEL PASAJERO (uno por asiento)
-    // =====================================================================
     [Serializable]
     public class PasajeroReservaViewModel : IValidatableObject
     {
@@ -183,9 +177,8 @@ namespace ConAuntenticacion.Models
         }
     }
 
-    // =====================================================================
+
     // PANTALLA 10: CONFIRMACIÓN DE LA RESERVA
-    // =====================================================================
     public class ConfirmarReservaViewModel : IValidatableObject
     {
         [Display(Name = "Acepto las condiciones de reserva, pago y cancelación")]
@@ -225,9 +218,7 @@ namespace ConAuntenticacion.Models
         }
     }
 
-    // =====================================================================
     // PANTALLAS 12, 13 y 14: RESUMEN DE UNA RESERVA
-    // =====================================================================
     public class DetalleAsignacionViewModel
     {
         public int AsignacionId { get; set; }
@@ -310,9 +301,41 @@ namespace ConAuntenticacion.Models
         }
     }
 
-    // =====================================================================
+    // PANTALLA 14: CAMBIO DE ASIENTO (titular o counter)
+    public class CambiarAsientoViewModel : IValidatableObject
+    {
+        [Required]
+        public int ReservaId { get; set; }
+
+        [Required]
+        public int AsignacionId { get; set; }
+
+        [Required(ErrorMessage = "Seleccione el nuevo asiento.")]
+        [Range(1, 7, ErrorMessage = "Asiento no válido (la aeronave tiene 7 asientos).")]
+        [Display(Name = "Nuevo asiento")]
+        public Nullable<int> NuevoAsiento { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (!NuevoAsiento.HasValue)
+            {
+                yield break;
+            }
+
+            // El servidor revisa titularidad, check-in, tiempo antes del vuelo y que el asiento siga libre
+            string error;
+            using (ServicioAerolinea servicio = new ServicioAerolinea())
+            {
+                error = servicio.EvaluarCambioAsiento(ReservaId, AsignacionId, NuevoAsiento.Value);
+            }
+            if (error != null)
+            {
+                yield return new ValidationResult(error, new[] { "NuevoAsiento" });
+            }
+        }
+    }
+
     // PANTALLA 14: CANCELACIÓN
-    // =====================================================================
     public class CancelarReservaViewModel : IValidatableObject
     {
         [Required]
