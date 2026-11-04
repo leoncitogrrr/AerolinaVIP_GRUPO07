@@ -13,7 +13,10 @@
 @using (Html.BeginForm("Confirmar", "Reservas", FormMethod.Post, new { id = "formConfirmar" }))
 {
     @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger", role = "alert" })
+    if (ViewData.ModelState.ContainsKey("") && ViewData.ModelState[""].Errors.Count > 0)
+    {
+        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger", role = "alert" })
+    }
 
     <div class="row g-4">
         <div class="col-12 col-lg-8">
@@ -42,12 +45,16 @@
             <div class="alert alert-warning small mt-3" role="note">
                 <strong>Condiciones (políticas propuestas, pendientes de aprobación):</strong>
                 <ul class="mb-0">
-                    <li>La reserva queda <strong>PENDIENTE</strong> y los asientos se muestran en <strong>morado</strong> durante
-                        @PoliticasAerolinea.HorasRetencionReserva horas. Si no se paga, expira y los asientos se liberan (DP-07).</li>
+                    <li>
+                        La reserva queda <strong>PENDIENTE</strong> y los asientos se muestran en <strong>morado</strong> durante
+                        @PoliticasAerolinea.HorasRetencionReserva horas. Si no se paga, expira y los asientos se liberan (DP-07).
+                    </li>
                     <li>Al pagar, la compra queda <strong>PAGADA</strong> y los asientos pasan a <strong>rojo</strong> (ocupados).</li>
-                    <li>Cancelación: 100 % de reembolso con @PoliticasAerolinea.HorasReembolsoTotal h o más de anticipación,
+                    <li>
+                        Cancelación: 100 % de reembolso con @PoliticasAerolinea.HorasReembolsoTotal h o más de anticipación,
                         50 % entre @PoliticasAerolinea.HorasReembolsoParcial y @PoliticasAerolinea.HorasReembolsoTotal h; con menos de
-                        @PoliticasAerolinea.HorasReembolsoParcial h no se permite cancelar (DP-08).</li>
+                        @PoliticasAerolinea.HorasReembolsoParcial h no se permite cancelar (DP-08).
+                    </li>
                     <li>El pago es <strong>simulado</strong> con fines académicos: no se realizan cobros reales.</li>
                 </ul>
             </div>
@@ -93,15 +100,15 @@
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
     <script>
-        $(function () {
-            $("#formConfirmar").on("submit", function () {
-                if (!$("#AceptaCondiciones").is(":checked")) {
-                    alert("Debe aceptar las condiciones para registrar la reserva.");
-                    return false;
-                }
-                // Evita doble envío (RNP-10)
-                $("#btnConfirmar").prop("disabled", true).text("Registrando reserva…");
-            });
-        });
+                $(function () {
+                    $("#formConfirmar").on("submit", function () {
+                        if (!$("#AceptaCondiciones").is(":checked")) {
+                            alert("Debe aceptar las condiciones para registrar la reserva.");
+                            return false;
+                        }
+                        // Evita doble envío (RNP-10)
+                        $("#btnConfirmar").prop("disabled", true).text("Registrando reserva…");
+                    });
+                });
     </script>
 }

@@ -33,9 +33,9 @@
 }
 
 <div class="d-flex flex-wrap gap-2 mb-3">
-    @Html.ActionLink("Pasajeros (CRUD)", "Index", "Pasajeros", null, new { @class = "btn btn-sm btn-outline-secondary" })
-    @Html.ActionLink("Check-in", "Index", "CheckIn", null, new { @class = "btn btn-sm btn-outline-secondary" })
-    @Html.ActionLink("Comprobantes", "Index", "Comprobantes", null, new { @class = "btn btn-sm btn-outline-secondary" })
+    @Html.ActionLink("Pasajeros (CRUD)", "Index", "Pasajeros", null, new { @class = "btn btn-sm btn-outline-primary" })
+    @Html.ActionLink("Check-in", "Index", "CheckIn", null, new { @class = "btn btn-sm btn-outline-primary" })
+    @Html.ActionLink("Comprobantes", "Index", "Comprobantes", null, new { @class = "btn btn-sm btn-outline-primary" })
     @if (esSuper)
     {
         @Html.ActionLink("Registrar usuario con rol", "Register", "Account", null, new { @class = "btn btn-sm btn-warning" })
@@ -76,7 +76,7 @@ else
                         <td class="text-end">@r.Total.ToString("N2")</td>
                         <td class="text-nowrap">
                             @Html.ActionLink("Detalle", "Confirmacion", "Compras", new { id = r.ReservaId }, new { @class = "btn btn-sm btn-outline-secondary" })
-                            @Html.ActionLink("Gestionar", "Gestionar", "Reservas", new { id = r.ReservaId }, new { @class = "btn btn-sm btn-link" })
+                            @Html.ActionLink("Gestionar", "Gestionar", "Reservas", new { id = r.ReservaId }, new { @class = "btn btn-sm btn-primary" })
                         </td>
                     </tr>
                 }

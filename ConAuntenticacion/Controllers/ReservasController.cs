@@ -28,7 +28,7 @@ namespace ConAuntenticacion.Controllers
             return User.IsInRole(RolesSistema.Counter) || User.IsInRole(RolesSistema.Administrador) || User.IsInRole(RolesSistema.SuperUsuario);
         }
 
-        // ================= PANTALLA 8: SELECCIÓN DE ASIENTO =================
+        //  PANTALLA 8: SELECCIÓN DE ASIENTO 
         [Authorize(Roles = RolesSistema.CompraPasajes)]
         public ActionResult SeleccionAsiento(int? id, int pasajeros = 1)
         {
@@ -72,7 +72,7 @@ namespace ConAuntenticacion.Controllers
             return View(modelo);
         }
 
-        // ================= PANTALLA 9: DATOS DE LOS PASAJEROS =================
+        //  PANTALLA 9: DATOS DE LOS PASAJEROS
         [Authorize(Roles = RolesSistema.CompraPasajes)]
         public ActionResult Pasajeros()
         {
@@ -131,7 +131,7 @@ namespace ConAuntenticacion.Controllers
             return View(modelo);
         }
 
-        // ================= PANTALLA 10: CONFIRMAR LA RESERVA =================
+        //  PANTALLA 10: CONFIRMAR LA RESERVA 
         [Authorize(Roles = RolesSistema.CompraPasajes)]
         public ActionResult Confirmar()
         {
@@ -179,7 +179,7 @@ namespace ConAuntenticacion.Controllers
             return View(ArmarConfirmacion(modelo, enCurso));
         }
 
-        // ================= PANTALLA 13: MIS RESERVAS =================
+        //  PANTALLA 13: MIS RESERVAS 
         public ActionResult MisReservas(string estado)
         {
             servicio.ExpirarReservasVencidas();
@@ -192,7 +192,7 @@ namespace ConAuntenticacion.Controllers
             return View(reservas);
         }
 
-        // ================= PANTALLA 14: GESTIÓN Y CANCELACIÓN =================
+        //  PANTALLA 14: GESTIÓN, CAMBIO DE ASIENTO Y CANCELACIÓN 
         public ActionResult Gestionar(int? id)
         {
             if (id == null)
@@ -204,7 +204,36 @@ namespace ConAuntenticacion.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "La reserva no pertenece a su cuenta.");
             }
             servicio.ExpirarReservasVencidas();
-            return View(servicio.ObtenerResumen(id.Value));
+            ReservaResumenViewModel resumen = servicio.ObtenerResumen(id.Value);
+            CargarAsientosLibres(resumen);
+            return View(resumen);
+        }
+
+        // Pantalla 14: cambio de asiento (titular de la reserva o counter en nombre del cliente)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CambiarAsiento(CambiarAsientoViewModel modelo)
+        {
+            if (!servicio.PuedeAcceder(modelo.ReservaId, User.Identity.GetUserId(), EsPersonal()))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "La reserva no pertenece a su cuenta.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    TempData["Mensaje"] = servicio.CambiarAsiento(modelo.ReservaId, modelo.AsignacionId, modelo.NuevoAsiento.Value);
+                    return RedirectToAction("Gestionar", new { id = modelo.ReservaId });
+                }
+                catch (ReglaNegocioException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+            ReservaResumenViewModel resumen = servicio.ObtenerResumen(modelo.ReservaId);
+            CargarAsientosLibres(resumen);
+            return View("Gestionar", resumen);
         }
 
         [HttpPost]
@@ -228,10 +257,12 @@ namespace ConAuntenticacion.Controllers
                     ModelState.AddModelError("", ex.Message);
                 }
             }
-            return View("Gestionar", servicio.ObtenerResumen(modelo.ReservaId));
+            ReservaResumenViewModel resumenCancelar = servicio.ObtenerResumen(modelo.ReservaId);
+            CargarAsientosLibres(resumenCancelar);
+            return View("Gestionar", resumenCancelar);
         }
 
-        // ---------------- APOYO ----------------
+        // APOYO 
         private ConfirmarReservaViewModel ArmarConfirmacion(ConfirmarReservaViewModel modelo, ReservaEnCurso enCurso)
         {
             modelo.Vuelo = servicio.ObtenerVuelo(enCurso.VueloId);
@@ -246,6 +277,20 @@ namespace ConAuntenticacion.Controllers
         {
             AsientoViewModel a = asientos.FirstOrDefault(x => x.NumeroAsiento == numero);
             return a != null ? a.Codigo : numero.ToString();
+        }
+
+        // Asientos verdes de cada vuelo de la reserva, para el formulario de cambio de asiento
+        private void CargarAsientosLibres(ReservaResumenViewModel resumen)
+        {
+            Dictionary<int, List<AsientoViewModel>> libres = new Dictionary<int, List<AsientoViewModel>>();
+            if (resumen != null)
+            {
+                foreach (int vueloId in resumen.Detalle.Select(d => d.VueloId).Distinct())
+                {
+                    libres[vueloId] = servicio.AsientosLibres(vueloId);
+                }
+            }
+            ViewBag.AsientosLibres = libres;
         }
 
         private void CargarTiposDocumento()

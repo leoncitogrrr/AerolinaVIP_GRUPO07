@@ -6,13 +6,11 @@ using System.Linq;
 
 namespace ConAuntenticacion.Models
 {
-    // =====================================================================
     // LÓGICA DE NEGOCIO DE LA AEROLÍNEA (BACKEND)
     // Toda regla de negocio se programa aquí, no en las vistas ni en los
     // controladores. Todo es SÍNCRONO y sin bloqueos: cada operación se
     // guarda con un solo SaveChanges (atómico) y el servidor revalida la
     // disponibilidad antes de guardar (RNP-04).
-    // =====================================================================
     public class ServicioAerolinea : IDisposable
     {
         private AerolineaVIPEntities db = new AerolineaVIPEntities();
@@ -26,9 +24,7 @@ namespace ConAuntenticacion.Models
             db.Dispose();
         }
 
-        // =================================================================
         // VUELOS (vistas vw_VueloDetalle, vw_EstadoAsientoVuelo)
-        // =================================================================
         public List<VueloDetalleDto> VuelosPorFecha(DateTime desde, DateTime hasta)
         {
             return db.Database.SqlQuery<VueloDetalleDto>(
@@ -200,9 +196,7 @@ namespace ConAuntenticacion.Models
             return destinos.OrderBy(d => d.Escala != null).ThenBy(d => d.Ciudad).ToList();
         }
 
-        // =================================================================
         // RESERVAS (pantallas 8, 9, 10, 13, 14)
-        // =================================================================
 
         // DP-07: las reservas PENDIENTES vencidas liberan sus asientos (morado -> verde)
         public void ExpirarReservasVencidas()
@@ -536,9 +530,84 @@ namespace ConAuntenticacion.Models
             return lista;
         }
 
-        // =================================================================
+        // CAMBIO DE ASIENTO (pantalla 14) - MOD-05 y MOD-09 (counter)
+
+        // Asientos libres de un vuelo (verdes) para ofrecer en el cambio
+        public List<AsientoViewModel> AsientosLibres(int vueloId)
+        {
+            return ObtenerAsientos(vueloId).Where(a => a.EstadoVisual == "DISPONIBLE").ToList();
+        }
+
+        // Devuelve null si el cambio es posible; si no, el motivo
+        public string EvaluarCambioAsiento(int reservaId, int asignacionId, int nuevoAsiento)
+        {
+            ReservaPasajeroVuelo a = db.ReservaPasajeroVuelo
+                .Include(x => x.Reserva)
+                .Include(x => x.CheckIn)
+                .FirstOrDefault(x => x.AsignacionId == asignacionId);
+
+            if (a == null || a.ReservaId != reservaId)
+            {
+                return "El pasajero seleccionado no pertenece a esta reserva.";
+            }
+            if (a.Reserva.EstadoReservaCodigo == "CANCELADA" || a.Reserva.EstadoReservaCodigo == "EXPIRADA")
+            {
+                return "La reserva está " + a.Reserva.EstadoReservaCodigo.ToLower() + "; no admite cambios.";
+            }
+            if (a.EstadoAsignacionCodigo != "PENDIENTE" && a.EstadoAsignacionCodigo != "CONFIRMADA")
+            {
+                return "Solo se puede cambiar un asiento reservado o confirmado.";
+            }
+            if (a.CheckIn.Any(c => c.EstadoCheckInCodigo == "COMPLETADO"))
+            {
+                return "El pasajero ya realizó el check-in; el asiento no se puede cambiar.";
+            }
+            if (a.NumeroAsiento == nuevoAsiento)
+            {
+                return "El pasajero ya ocupa ese asiento.";
+            }
+
+            ResultadoVueloViewModel vuelo = ObtenerVuelo(a.VueloId);
+            if (vuelo == null)
+            {
+                return "El vuelo de la reserva no existe.";
+            }
+            if (vuelo.Salida.AddHours(-PoliticasAerolinea.HorasCierreCheckIn) <= DateTime.Now)
+            {
+                return "Faltan menos de " + PoliticasAerolinea.HorasCierreCheckIn + " h para la salida; ya no se permiten cambios de asiento.";
+            }
+
+            // RNP-04: el asiento nuevo debe seguir libre en este momento
+            return ValidarAsientos(a.VueloId, new List<int> { nuevoAsiento });
+        }
+
+        // Cambia el asiento: el anterior queda libre (verde) y el nuevo toma el estado de la asignación
+        public string CambiarAsiento(int reservaId, int asignacionId, int nuevoAsiento)
+        {
+            string error = EvaluarCambioAsiento(reservaId, asignacionId, nuevoAsiento);
+            if (error != null)
+            {
+                throw new ReglaNegocioException(error);
+            }
+
+            ReservaPasajeroVuelo a = db.ReservaPasajeroVuelo.Include(x => x.Pasajero).First(x => x.AsignacionId == asignacionId);
+            List<AsientoViewModel> mapa = ObtenerAsientos(a.VueloId);
+            string anterior = CodigoDeAsiento(mapa, a.NumeroAsiento);
+            string nuevo = CodigoDeAsiento(mapa, nuevoAsiento);
+
+            a.NumeroAsiento = (byte)nuevoAsiento;
+            Guardar("No se pudo cambiar el asiento");   // el índice UX_RPV_AsientoActivo evita la doble ocupación
+
+            return "Se cambió el asiento de " + a.Pasajero.Nombres + " " + a.Pasajero.Apellidos + ": " + anterior + " → " + nuevo + ".";
+        }
+
+        private static string CodigoDeAsiento(List<AsientoViewModel> mapa, int numero)
+        {
+            AsientoViewModel s = mapa.FirstOrDefault(x => x.NumeroAsiento == numero);
+            return s != null ? s.Codigo : numero.ToString();
+        }
+
         // CANCELACIÓN (pantalla 14) - DP-08 y RNP-07
-        // =================================================================
         public string EvaluarCancelacion(int reservaId)
         {
             Reserva r = ConsultaReservas().FirstOrDefault(x => x.ReservaId == reservaId);
@@ -648,9 +717,7 @@ namespace ConAuntenticacion.Models
             return mensaje;
         }
 
-        // =================================================================
         // PAGO SIMULADO (pantallas 11 y 12) - DP-06, RNP-06, RNP-10
-        // =================================================================
         public ResultadoPagoViewModel ProcesarPago(PagoViewModel datos)
         {
             ExpirarReservasVencidas();
@@ -736,9 +803,7 @@ namespace ConAuntenticacion.Models
             return numero;
         }
 
-        // =================================================================
         // CHECK-IN (pantalla 15) - DP-12
-        // =================================================================
         public string EvaluarCheckIn(int asignacionId, string usuarioId, bool esPersonal)
         {
             ReservaPasajeroVuelo a = db.ReservaPasajeroVuelo
@@ -896,9 +961,7 @@ namespace ConAuntenticacion.Models
             return db.CheckIn.Where(c => c.CheckInId == checkInId).Select(c => c.ReservaPasajeroVuelo.Reserva.UsuarioId).FirstOrDefault();
         }
 
-        // =================================================================
         // COMPROBANTES (pantalla 16)
-        // =================================================================
         public List<ComprobanteItemViewModel> ListarComprobantes(string usuarioId, bool esPersonal, string buscar)
         {
             IQueryable<Comprobante> consulta = db.Comprobante
@@ -966,9 +1029,7 @@ namespace ConAuntenticacion.Models
             return m;
         }
 
-        // =================================================================
         // ADMINISTRACIÓN (pantallas 18, 19 y 21)
-        // =================================================================
         public List<AdminVueloItemViewModel> ListarVuelosAdmin(DateTime desde, DateTime hasta)
         {
             List<ResultadoVueloViewModel> vuelos = ConvertirResultados(VuelosPorFecha(desde, hasta));
@@ -1133,9 +1194,7 @@ namespace ConAuntenticacion.Models
                 .ToList();
         }
 
-        // =================================================================
         // APOYO
-        // =================================================================
         private void Guardar(string operacion)
         {
             try
