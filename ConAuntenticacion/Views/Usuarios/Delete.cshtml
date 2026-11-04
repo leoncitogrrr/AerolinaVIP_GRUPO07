@@ -1,0 +1,44 @@
+﻿@model ConAuntenticacion.Models.UsuarioFormViewModel
+@{
+    ViewBag.Title = "Eliminar · Usuarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string motivo = ViewBag.MotivoNoEliminar as string;
+}
+
+<h1 class="h3">Eliminar · Usuarios</h1>
+
+@if (motivo != null)
+{
+    <div class="alert alert-warning" role="alert">@motivo</div>
+}
+else
+{
+    <h2 class="h5">¿Seguro que desea eliminar esta cuenta? Esta acción no se puede deshacer.</h2>
+}
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Nombre de usuario</dt>
+            <dd class="col-sm-9">@Model.UserName</dd>
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.Nombres @Model.Apellidos</dd>
+            <dt class="col-sm-3">Correo electrónico</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+            <dt class="col-sm-3">Rol</dt>
+            <dd class="col-sm-9">@Model.Rol</dd>
+        </dl>
+    </div>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="form-actions no-color">
+        @if (motivo == null)
+        {
+            <input type="submit" value="Eliminar" class="btn btn-danger" /><text> |</text>
+        }
+        @Html.ActionLink("Volver a la lista", "Index")
+    </div>
+}

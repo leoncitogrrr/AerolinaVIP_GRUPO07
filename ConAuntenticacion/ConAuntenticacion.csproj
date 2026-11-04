@@ -179,6 +179,7 @@
     <Compile Include="Controllers\RutasController.cs" />
     <Compile Include="Controllers\TiposDocumentoController.cs" />
     <Compile Include="Controllers\TramosItinerarioController.cs" />
+    <Compile Include="Controllers\UsuariosController.cs" />
     <Compile Include="Controllers\VuelosAdminController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -470,6 +471,12 @@
     <Content Include="Views\DatosEmisor\Details.cshtml" />
     <Content Include="Views\DatosEmisor\Edit.cshtml" />
     <Content Include="Views\DatosEmisor\Index.cshtml" />
+    <Content Include="Views\Usuarios\_Formulario.cshtml" />
+    <Content Include="Views\Usuarios\Index.cshtml" />
+    <Content Include="Views\Usuarios\Create.cshtml" />
+    <Content Include="Views\Usuarios\Edit.cshtml" />
+    <Content Include="Views\Usuarios\Details.cshtml" />
+    <Content Include="Views\Usuarios\Delete.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

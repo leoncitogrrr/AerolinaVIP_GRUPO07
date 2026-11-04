@@ -1,0 +1,72 @@
+﻿@model ConAuntenticacion.Models.UsuarioFormViewModel
+@using Microsoft.AspNet.Identity
+@{
+    bool esPropio = Model.Id != null && Model.Id == User.Identity.GetUserId();
+}
+
+@if (ViewData.ModelState.ContainsKey("") && ViewData.ModelState[""].Errors.Count > 0)
+{
+    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger", role = "alert" })
+}
+@Html.HiddenFor(m => m.Id)
+
+<div class="row g-3">
+    <div class="col-12 col-md-6">
+        @Html.LabelFor(m => m.UserName, new { @class = "form-label" })
+        @if (Model.EsNuevo)
+        {
+            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", maxlength = "30", autocomplete = "off" })
+            @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger", role = "alert" })
+        }
+        else
+        {
+            <input type="text" class="form-control" value="@Model.UserName" readonly aria-readonly="true" />
+            <div class="form-text">El nombre de usuario no se puede cambiar.</div>
+        }
+    </div>
+    <div class="col-12 col-md-6">
+        @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", maxlength = "256" })
+        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger", role = "alert" })
+    </div>
+    <div class="col-12 col-md-6">
+        @Html.LabelFor(m => m.Nombres, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Nombres, new { @class = "form-control", maxlength = "100" })
+        @Html.ValidationMessageFor(m => m.Nombres, "", new { @class = "text-danger", role = "alert" })
+    </div>
+    <div class="col-12 col-md-6">
+        @Html.LabelFor(m => m.Apellidos, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Apellidos, new { @class = "form-control", maxlength = "100" })
+        @Html.ValidationMessageFor(m => m.Apellidos, "", new { @class = "text-danger", role = "alert" })
+    </div>
+    <div class="col-12 col-md-6">
+        @Html.LabelFor(m => m.Rol, new { @class = "form-label" })
+        @if (esPropio)
+        {
+            @Html.HiddenFor(m => m.Rol)
+            <input type="text" class="form-control" value="@Model.Rol" readonly aria-readonly="true" />
+            <div class="form-text">No puede cambiar su propio rol.</div>
+        }
+        else
+        {
+            @Html.DropDownListFor(m => m.Rol, (SelectList)ViewBag.Roles, "Seleccionar rol", new { @class = "form-select" })
+            @Html.ValidationMessageFor(m => m.Rol, "", new { @class = "text-danger", role = "alert" })
+        }
+    </div>
+    @if (Model.EsNuevo)
+    {
+        <div class="col-12 col-md-6"></div>
+        <div class="col-12 col-md-6">
+            @Html.LabelFor(m => m.Password, new { @class = "form-label" })
+            @Html.PasswordFor(m => m.Password, new { @class = "form-control", autocomplete = "new-password" })
+            <div class="form-text">Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.</div>
+            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger", role = "alert" })
+        </div>
+        <div class="col-12 col-md-6">
+            @Html.LabelFor(m => m.ConfirmPassword, new { @class = "form-label" })
+            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", autocomplete = "new-password" })
+            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger", role = "alert" })
+        </div>
+    }
+</div>
+<p class="small text-muted mt-2">* Campos obligatorios</p>

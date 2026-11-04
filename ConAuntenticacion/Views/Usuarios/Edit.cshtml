@@ -1,0 +1,26 @@
+﻿@model ConAuntenticacion.Models.UsuarioFormViewModel
+@{
+    ViewBag.Title = "Editar · Usuarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="h3">Editar · Usuarios</h1>
+<p class="text-muted">Pantalla 20 · La contraseña no se modifica aquí; el usuario puede recuperarla desde «¿Olvidó su contraseña?».</p>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        @using (Html.BeginForm("Edit", "Usuarios", FormMethod.Post, new { id = "formUsuario" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Partial("_Formulario", Model)
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                @Html.ActionLink("Volver a la lista", "Index", null, new { @class = "btn btn-link" })
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

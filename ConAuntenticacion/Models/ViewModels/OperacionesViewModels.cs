@@ -7,9 +7,7 @@ using Microsoft.AspNet.Identity;
 
 namespace ConAuntenticacion.Models
 {
-    // =====================================================================
     // PANTALLA 11: PAGO SIMULADO (no se guarda el número completo ni el CVV)
-    // =====================================================================
     public class PagoViewModel : IValidatableObject
     {
         [Required]
@@ -160,9 +158,7 @@ namespace ConAuntenticacion.Models
         public string Mensaje { get; set; }
     }
 
-    // =====================================================================
     // PANTALLA 15: CHECK-IN
-    // =====================================================================
     public class CheckInElegibleViewModel
     {
         public int AsignacionId { get; set; }
@@ -218,9 +214,7 @@ namespace ConAuntenticacion.Models
         }
     }
 
-    // =====================================================================
     // PANTALLA 16: COMPROBANTE ACADÉMICO
-    // =====================================================================
     public class ComprobanteViewModel
     {
         public ComprobanteDetalleDto Encabezado { get; set; }
@@ -232,9 +226,7 @@ namespace ConAuntenticacion.Models
         public decimal ImporteReembolso { get; set; }
     }
 
-    // =====================================================================
     // PANTALLA 18: ADMINISTRACIÓN DE VUELOS E ITINERARIOS
-    // =====================================================================
     public class AdminVueloItemViewModel
     {
         public int VueloId { get; set; }
@@ -337,9 +329,7 @@ namespace ConAuntenticacion.Models
         }
     }
 
-    // =====================================================================
     // PANTALLA 19: AERONAVES
-    // =====================================================================
     public class AeronaveResumenViewModel
     {
         public int AeronaveId { get; set; }
@@ -360,9 +350,7 @@ namespace ConAuntenticacion.Models
         public string EstadoAeronaveCodigo { get; set; }
     }
 
-    // =====================================================================
     // PANTALLA 20: USUARIOS, PASAJEROS Y RESERVAS
-    // =====================================================================
     public class UsuarioItemViewModel
     {
         public string Id { get; set; }
@@ -372,6 +360,99 @@ namespace ConAuntenticacion.Models
         public string Roles { get; set; }
     }
 
+    // CRUD de usuarios (Crear / Editar). Las reglas se validan aquí, no en el controlador.
+    public class UsuarioFormViewModel : IValidatableObject
+    {
+        public string Id { get; set; }
+
+        [StringLength(30, MinimumLength = 4, ErrorMessage = "El usuario debe tener entre {2} y {1} caracteres.")]
+        [RegularExpression(@"^[a-zA-Z0-9._]+$", ErrorMessage = "Solo letras, números, punto y guion bajo.")]
+        [Display(Name = "Nombre de usuario *")]
+        public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Los nombres son obligatorios.")]
+        [StringLength(100)]
+        [Display(Name = "Nombres *")]
+        public string Nombres { get; set; }
+
+        [Required(ErrorMessage = "Los apellidos son obligatorios.")]
+        [StringLength(100)]
+        [Display(Name = "Apellidos *")]
+        public string Apellidos { get; set; }
+
+        [Required(ErrorMessage = "El correo es obligatorio.")]
+        [EmailAddress(ErrorMessage = "Formato de correo no válido.")]
+        [StringLength(256)]
+        [Display(Name = "Correo electrónico *")]
+        public string Email { get; set; }
+
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "La contraseña debe tener al menos {2} caracteres.")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Contraseña *")]
+        public string Password { get; set; }
+
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
+        [Display(Name = "Confirmar contraseña *")]
+        public string ConfirmPassword { get; set; }
+
+        [Required(ErrorMessage = "Seleccione el rol.")]
+        [Display(Name = "Rol *")]
+        public string Rol { get; set; }
+
+        public bool EsNuevo
+        {
+            get { return string.IsNullOrEmpty(Id); }
+        }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var actor = HttpContext.Current.User;
+
+            if (EsNuevo)
+            {
+                if (string.IsNullOrWhiteSpace(UserName))
+                {
+                    yield return new ValidationResult("El nombre de usuario es obligatorio.", new[] { "UserName" });
+                }
+                else if (ServicioUsuarios.ExisteUserName(UserName, null))
+                {
+                    yield return new ValidationResult("Ya existe una cuenta con ese nombre de usuario.", new[] { "UserName" });
+                }
+                if (string.IsNullOrEmpty(Password))
+                {
+                    yield return new ValidationResult("La contraseña es obligatoria.", new[] { "Password" });
+                }
+            }
+            else
+            {
+                // El Administrador no puede editar cuentas de Administrador o SuperUsuario
+                if (!ServicioUsuarios.PuedeAdministrar(actor, Id))
+                {
+                    yield return new ValidationResult("No tiene permiso para modificar esta cuenta.");
+                }
+                // Nadie cambia su propio rol (evita quedarse sin administración)
+                if (Id == actor.Identity.GetUserId() && Rol != ServicioUsuarios.RolDe(Id))
+                {
+                    yield return new ValidationResult("No puede cambiar su propio rol.", new[] { "Rol" });
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(Email) && ServicioUsuarios.ExisteEmail(Email, Id))
+            {
+                yield return new ValidationResult("El correo ya está registrado en otra cuenta.", new[] { "Email" });
+            }
+
+            // Seguridad: solo se asignan los roles permitidos para quien está conectado
+            if (!string.IsNullOrEmpty(Rol) && !ServicioUsuarios.RolesAsignables(actor).Contains(Rol))
+            {
+                if (EsNuevo || Rol != ServicioUsuarios.RolDe(Id))
+                {
+                    yield return new ValidationResult("No tiene permiso para asignar el rol " + Rol + ".", new[] { "Rol" });
+                }
+            }
+        }
+    }
     public class GestionViewModel
     {
         [StringLength(60)]
@@ -405,9 +486,7 @@ namespace ConAuntenticacion.Models
         }
     }
 
-    // =====================================================================
     // PANTALLA 21: CONSULTAS Y REPORTES
-    // =====================================================================
     public class VentaRutaViewModel
     {
         public string Ruta { get; set; }
