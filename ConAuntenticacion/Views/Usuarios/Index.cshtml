@@ -1,0 +1,67 @@
+﻿@model IEnumerable<ConAuntenticacion.Models.UsuarioItemViewModel>
+@using ConAuntenticacion.Models
+@using Microsoft.AspNet.Identity
+@{
+    ViewBag.Title = "Usuarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool esSuper = User.IsInRole(RolesSistema.SuperUsuario);
+    var asignables = ServicioUsuarios.RolesAsignables(User);
+    string yo = User.Identity.GetUserId();
+}
+
+<h1 class="h3 mb-1">Usuarios</h1>
+<p class="text-muted">Pantalla 20 · @(esSuper ? "Como SuperUsuario administra todas las cuentas." : "Como Administrador administra cuentas de Cliente y Counter.")</p>
+@Html.Partial("_Mensajes")
+
+<div class="d-flex flex-wrap gap-2 align-items-end mb-3">
+    @using (Html.BeginForm("Index", "Usuarios", FormMethod.Get, new { @class = "d-flex gap-2", role = "search" }))
+    {
+        <input type="text" name="buscar" value="@ViewBag.Buscar" class="form-control" placeholder="Usuario, nombre o correo" aria-label="Buscar usuario" maxlength="60" />
+        <button type="submit" class="btn btn-outline-dark">Buscar</button>
+    }
+    @Html.ActionLink("Crear nuevo", "Create", null, new { @class = "btn btn-primary ms-auto" })
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-secondary" role="status">No se encontraron usuarios.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    bool administrable = string.IsNullOrEmpty(u.Roles) || asignables.Contains(u.Roles);
+                    <tr>
+                        <td class="fw-bold">@u.UserName @(u.Id == yo ? "(usted)" : "")</td>
+                        <td>@u.NombreCompleto</td>
+                        <td>@u.Email</td>
+                        <td><span class="badge bg-secondary">@u.Roles</span></td>
+                        <td class="text-nowrap">
+                            @Html.ActionLink("Detalles", "Details", new { id = u.Id }, new { @class = "btn btn-sm btn-outline-primary" })
+                            @if (administrable)
+                            {
+                                @Html.ActionLink("Editar", "Edit", new { id = u.Id }, new { @class = "btn btn-sm btn-primary" })
+                            }
+                            @if (esSuper && u.Id != yo)
+                            {
+                                @Html.ActionLink("Eliminar", "Delete", new { id = u.Id }, new { @class = "btn btn-sm btn-outline-danger" })
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
